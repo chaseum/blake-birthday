@@ -1,0 +1,328 @@
+.arena-world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 1100px;
+  background: #010201;
+}
+
+.arena-camera {
+  position: absolute;
+  inset: -3%;
+  overflow: hidden;
+  transform: scale(1);
+  transform-origin: 50% 50%;
+  transition:
+    transform 1.85s cubic-bezier(0.16, 0.72, 0.16, 1),
+    filter 700ms ease;
+  will-change: transform;
+}
+
+.arena-world--wide .arena-camera {
+  transform: scale(1.02) translate3d(0, 0, 0);
+  transform-origin: 50% 48%;
+}
+
+.arena-world--jumbotron .arena-camera {
+  transform: scale(1.54) translate3d(0, 9vh, 0);
+  transform-origin: 55% 29%;
+}
+
+.arena-world--ice .arena-camera {
+  transform: scale(2.32) translate3d(-1.5vw, -13vh, 0);
+  transform-origin: 50% 76%;
+  transition-duration: 2.35s;
+  filter: contrast(1.06) saturate(1.08);
+}
+
+.arena-world--goal .arena-camera {
+  transform: scale(1.42) translate3d(0, 7vh, 0);
+  transform-origin: 55% 29%;
+  transition-duration: 1.05s;
+}
+
+.arena-world--dim .arena-camera {
+  filter: brightness(0.42) saturate(0.72) blur(1.5px);
+}
+
+.arena-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  transform: scale(1.035);
+}
+
+.arena-photo__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(1, 6, 4, 0.44), rgba(1, 4, 3, 0.08) 48%, rgba(1, 4, 3, 0.36)),
+    radial-gradient(circle at 55% 30%, transparent 0 18%, rgba(0, 0, 0, 0.18) 54%, rgba(0, 0, 0, 0.62) 100%);
+  pointer-events: none;
+}
+
+.arena-crowd-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, transparent 0 48%, rgba(0, 132, 61, 0.08) 62%, transparent 76%),
+    radial-gradient(ellipse at 54% 67%, rgba(221, 248, 246, 0.16), transparent 34%);
+  mix-blend-mode: screen;
+}
+
+.ice-spotlight {
+  position: absolute;
+  left: 19%;
+  right: 10%;
+  bottom: 3%;
+  height: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 65%, rgba(235, 255, 251, 0.15), transparent 65%);
+  mix-blend-mode: screen;
+}
+
+.camera-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  box-shadow: inset 0 0 160px 48px rgba(0, 0, 0, 0.62);
+}
+
+.arena-ribbon-wrap {
+  position: absolute;
+  left: -4%;
+  width: 108%;
+  z-index: 5;
+  transform: perspective(800px) rotateX(-4deg);
+  overflow: hidden;
+}
+
+.arena-ribbon-wrap--top {
+  top: 25.5%;
+}
+
+.arena-ribbon-wrap--lower {
+  top: 44.5%;
+}
+
+.arena-ribbon {
+  height: clamp(16px, 2.2vw, 30px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-shadow: 0 0 22px rgba(0, 0, 0, 0.6);
+}
+
+.arena-ribbon--green {
+  background: rgba(0, 132, 61, 0.94);
+  color: white;
+}
+
+.arena-ribbon--white {
+  background: rgba(4, 8, 6, 0.9);
+  color: #baffd5;
+}
+
+.arena-ribbon__track {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  animation: ribbonScroll 24s linear infinite;
+  white-space: nowrap;
+}
+
+.arena-ribbon__track span {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  font-size: clamp(0.52rem, 0.92vw, 0.8rem);
+  padding-right: 5rem;
+}
+
+.jumbotron-anchor {
+  position: absolute;
+  z-index: 10;
+  top: 13.5%;
+  left: 50%;
+  width: clamp(360px, 32vw, 610px);
+  transform: translateX(-50%);
+  filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.7));
+}
+
+.jumbotron {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.92 / 1;
+  transform-style: preserve-3d;
+}
+
+.jumbotron__screen {
+  position: absolute;
+  inset: 12% 8% 16%;
+  z-index: 5;
+  overflow: hidden;
+  background: #050806;
+  border: 3px solid #202722;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 0 22px rgba(0, 132, 61, 0.28);
+}
+
+.jumbotron__crown {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 12%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(#111712, #050805);
+  border: 1px solid #303831;
+  color: white;
+  font-family: var(--display);
+  font-size: clamp(0.46rem, 0.72vw, 0.72rem);
+  letter-spacing: 0.16em;
+}
+
+.jumbotron__score-strip {
+  position: absolute;
+  z-index: 7;
+  bottom: 3%;
+  left: 10%;
+  right: 10%;
+  height: 13%;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 0 5%;
+  background: #050805;
+  color: white;
+  border: 1px solid #303831;
+  font-family: var(--display);
+  font-size: clamp(0.5rem, 0.75vw, 0.78rem);
+  letter-spacing: 0.09em;
+}
+
+.jumbotron__score-strip strong {
+  color: var(--skyline);
+  text-align: center;
+}
+
+.jumbotron__score-strip span:last-child {
+  text-align: right;
+}
+
+.jumbotron__side {
+  position: absolute;
+  top: 16%;
+  width: 11%;
+  height: 58%;
+  z-index: 2;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #006d33;
+  border: 2px solid #263129;
+  color: white;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(0.48rem, 0.7vw, 0.7rem);
+  letter-spacing: 0.08em;
+  writing-mode: vertical-rl;
+}
+
+.jumbotron__side--left {
+  left: 0;
+  transform: perspective(350px) rotateY(22deg);
+  transform-origin: right center;
+}
+
+.jumbotron__side--right {
+  right: 0;
+  transform: perspective(350px) rotateY(-22deg);
+  transform-origin: left center;
+}
+
+.jumbotron--goal .jumbotron__side,
+.jumbotron--goal .jumbotron__screen {
+  animation: goalScreenFlash 380ms steps(2, end) infinite;
+}
+
+.speed-lines {
+  position: absolute;
+  inset: -30%;
+  z-index: 55;
+  pointer-events: none;
+  opacity: 0;
+  background: repeating-radial-gradient(
+    circle at 50% 65%,
+    transparent 0 4px,
+    rgba(255, 255, 255, 0.06) 5px 6px,
+    transparent 7px 18px
+  );
+  transform: scale(0.7);
+  animation: zoomBurst 2.35s cubic-bezier(0.2, 0.72, 0.18, 1) both;
+}
+
+@keyframes ribbonScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes goalScreenFlash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(2.25); }
+}
+
+@keyframes zoomBurst {
+  0% { opacity: 0; transform: scale(0.55); }
+  20% { opacity: 0.6; }
+  75% { opacity: 0.1; }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+@media (max-width: 760px) {
+  .jumbotron-anchor {
+    width: min(82vw, 470px);
+    top: 18%;
+  }
+
+  .arena-world--jumbotron .arena-camera {
+    transform: scale(1.65) translate3d(0, 7vh, 0);
+  }
+
+  .arena-world--ice .arena-camera {
+    transform: scale(2.5) translate3d(0, -12vh, 0);
+  }
+
+  .arena-ribbon-wrap--top { top: 29%; }
+  .arena-ribbon-wrap--lower { top: 49%; }
+}
+
+.arena-credit {
+  position: fixed;
+  z-index: 72;
+  left: 10px;
+  bottom: 8px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.56rem;
+  letter-spacing: 0.03em;
+}
+
+.arena-credit a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.arena-credit a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}

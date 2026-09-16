@@ -1,98 +1,77 @@
-# Dallas Stars Birthday Reveal
+# Blake Birthday — Dallas Stars Arena Reveal
 
-A small scene-based birthday website built with Vite, React, and TypeScript.
+A cinematic, arena-style birthday reveal built with Vite, React, TypeScript, DOM/CSS animation, Web Audio, and a Canvas hockey challenge.
 
-It intentionally avoids a dashboard layout, component libraries, Tailwind, glassmorphism,
-admin controls, and a fake quiz flow. The experience is:
+The site is deliberately structured like an arena presentation rather than a normal webpage:
 
-1. Arena cold open
-2. Starting lineup
-3. Relationship season highlights
-4. Gift lock
-5. Hockey shootout
-6. Goal celebration
-7. Game reveal
-8. Souvenir ticket + birthday note
+1. Wide American Airlines Center view with scrolling LED ribbon text
+2. Jumbotron zoom
+3. Wii-Sports-style starting-lineup camera pan
+4. TV-broadcast season highlight package with relationship photos/stats
+5. Fast camera dive from the jumbotron to the ice
+6. Two-goal shootout challenge with a reacting Colorado goalie
+7. Camera pullback to a full-jumbotron GOAL celebration
+8. Two physical souvenir tickets rise into frame
+9. Final photo collage + birthday note
 
-## Run locally
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Production build:
+Production:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Personalize it
+## Personalization
 
-Start with:
+Most content is in `src/config.ts`:
 
-```text
-src/config.ts
-```
+- names
+- matchup/date/time
+- lineup
+- relationship stats
+- memory photos
+- ticket section/row/seats
+- final note
 
-Edit the names, highlights, opponent, date, time, seats, and birthday note there.
+The current memory URLs reuse photos from the Valentine's Day repository so the prototype immediately has real photos. For the final version, copy the chosen photos into `public/photos/` and replace the URLs in `src/config.ts` so this project is self-contained.
 
-Replace the placeholder images in:
+The arena background is a real American Airlines Center interior photo from Wikimedia Commons. It is credited in-app and licensed CC BY 4.0. If you replace it, update `arenaImage` and `arenaCredit` in `src/config.ts`.
 
-```text
-public/photos/
-```
+## Typography
 
-Keep the filenames the same, or change the paths in `src/config.ts`.
+The CSS display stack starts with `Industry Inc` if it is installed/served by you, then falls back to the freely available Barlow Condensed. Do not commit commercial font files unless you have the appropriate web-font license.
 
-Recommended real photos:
+## Tickets
 
-```text
-public/photos/blake.jpg
-public/photos/chase.jpg
-public/photos/us.jpg
-```
+The ticket UI is a souvenir reveal and intentionally says `NOT VALID FOR ENTRY`. Update the real section, row, and seat numbers in `src/config.ts` once you want them shown.
 
-Then update the three matching paths in `src/config.ts`.
+The matchup is set to:
 
-## Deploy to Vercel
+- Colorado Avalanche at Dallas Stars
+- Friday, January 22, 2027
+- 7:00 PM
+- American Airlines Center
 
-The repo is a standard Vite app and does not need a custom `vercel.json`.
+## Deploy
 
-### Git workflow
+### Vercel
 
-1. Push the project to GitHub.
-2. In Vercel, create/import a project from that repository.
-3. Vercel should detect Vite automatically.
-4. Build command: `npm run build`
-5. Output directory: `dist`
-6. Deploy.
+Import the GitHub repository. Vercel should detect Vite automatically.
 
-You can also use the Vercel CLI:
+- Build: `npm run build`
+- Output: `dist`
 
-```bash
-npm i -g vercel
-vercel
-vercel --prod
-```
-
-## Deploy to Cloudflare Pages
-
-For Cloudflare Pages:
+### Cloudflare Pages
 
 - Framework preset: React / Vite
-- Build command: `npm run build`
-- Build output directory: `dist`
+- Build: `npm run build`
+- Output: `dist`
 
-Connect the GitHub repository in Workers & Pages and deploy.
-
-Cloudflare currently recommends Workers for many new application projects, but this site is
-fully static, so Pages remains a straightforward fit.
-
-## Notes
-
-- No server or database is required.
-- All content ships as static assets.
-- The goal sound is synthesized in the browser, so no copyrighted Dallas Stars audio is bundled.
-- The shootout goalie uses Colorado colors so the user is not shooting on Dallas's own goalie.
+No backend, database, redirects, or environment variables are required.
