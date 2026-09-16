@@ -6,26 +6,8 @@ type Props = {
   onWin: () => void;
 };
 
-type Shot = {
-  active: boolean;
-  startTime: number;
-  duration: number;
-  fromX: number;
-  fromY: number;
-  targetX: number;
-  targetY: number;
-  power: number;
-  goalieTargetX: number;
-};
-
-type Drag = {
-  active: boolean;
-  x: number;
-  y: number;
-};
-
 const GOALS_TO_WIN = 2;
-const PUCK_RADIUS = 14;
+const PUCK_RADIUS = 22;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -37,44 +19,33 @@ function easeOutCubic(t: number) {
 
 export function HockeyChallenge({ onWin }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const winCalled = useRef(false);
-  const scoreRef = useRef(0);
-  const shotsRef = useRef(0);
   const [score, setScore] = useState(0);
   const [shots, setShots] = useState(0);
-  const [message, setMessage] = useState("DRAG THE PUCK BACK · PICK A CORNER · RELEASE");
+  const [message, setMessage] = useState("DRAG ANYWHERE · AIM · LET GO");
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
 
     let animationFrame = 0;
     let width = 0;
     let height = 0;
     let goalieX = 0;
-    let goalieVelocity = 1.65;
     let goalieDirection = 1;
     let resetTimer = 0;
+    let winTimer = 0;
     let flashUntil = 0;
+    let goals = 0;
+    let shotCount = 0;
+    let misses = 0;
+    let won = false;
+    let waiting = false;
 
-    const puck = {
-      x: 0,
-      y: 0,
-      drawX: 0,
-      drawY: 0,
-      scale: 1,
-    };
-
-    const drag: Drag = {
-      active: false,
-      x: 0,
-      y: 0,
-    };
-
-    const shot: Shot = {
+    const puck = { x: 0, y: 0, drawX: 0, drawY: 0, scale: 1 };
+    // Drag starts wherever the finger lands — no need to hit the puck itself.
+    const drag = { active: false, startX: 0, startY: 0, x: 0, y: 0 };
+    const shot = {
       active: false,
       startTime: 0,
       duration: 0,
@@ -86,25 +57,45 @@ export function HockeyChallenge({ onWin }: Props) {
       goalieTargetX: 0,
     };
 
+    // Each miss makes the goalie smaller and worse at guessing. ponytail: linear
+    // assist, tune the multipliers here if it's still too hard/easy.
+    const assist = () => Math.min(misses, 5);
+
     const net = () => {
-      const netWidth = Math.min(width * 0.56, 520);
-      const netHeight = Math.min(height * 0.24, 170);
+      const netWidth = Math.min(width * (width < 600 ? 0.86 : 0.66), 620);
+      const netHeight = Math.min(height * 0.3, 230);
+      return { x: (width - netWidth) / 2, y: height * 0.14, width: netWidth, height: netHeight };
+    };
+
+    /** Goalie size/reach scale with the net so phones aren't harder than desktop. */
+    const goalieScale = () => net().width / 620;
+
+    /** Pull back like a slingshot, or flick toward the net — both work. */
+    const aim = () => {
+      const mx = drag.x - drag.startX;
+      const my = drag.y - drag.startY;
+      const flick = my < -10;
+      const vx = flick ? mx : -mx;
+      const vy = flick ? -my : my;
+      const goal = net();
+      const power = clamp((Math.hypot(vx, vy) - 12) / 120, 0, 1);
+      const elevation = clamp((vy - 12) / 140, 0, 1);
       return {
-        x: (width - netWidth) / 2,
-        y: height * 0.12,
-        width: netWidth,
-        height: netHeight,
+        power,
+        x: width / 2 + clamp(vx / 120, -1.15, 1.15) * goal.width * 0.46,
+        y: goal.y + goal.height * (0.86 - elevation * 0.72),
       };
     };
 
     const resetPuck = () => {
       puck.x = width / 2;
-      puck.y = height * 0.84;
+      puck.y = height * 0.82;
       puck.drawX = puck.x;
       puck.drawY = puck.y;
       puck.scale = 1;
       drag.active = false;
       shot.active = false;
+      waiting = false;
     };
 
     const resize = () => {
@@ -120,137 +111,95 @@ export function HockeyChallenge({ onWin }: Props) {
     };
 
     const scheduleReset = (copy: string) => {
-      window.clearTimeout(resetTimer);
+      misses += 1;
+      waiting = true;
       setMessage(copy);
+      window.clearTimeout(resetTimer);
       resetTimer = window.setTimeout(() => {
         resetPuck();
-        setMessage("AGAIN.");
+        setMessage(misses >= 3 ? "GOALIE'S GETTING TIRED. SHOOT AGAIN." : "SHOOT AGAIN.");
       }, 900);
     };
 
     const resolveShot = () => {
       const goal = net();
-      const insideX =
-        shot.targetX > goal.x + 13 &&
-        shot.targetX < goal.x + goal.width - 13;
-      const insideY =
-        shot.targetY > goal.y + 12 &&
-        shot.targetY < goal.y + goal.height - 8;
+      const inside =
+        shot.targetX > goal.x + 6 &&
+        shot.targetX < goal.x + goal.width - 6 &&
+        shot.targetY > goal.y + 4 &&
+        shot.targetY < goal.y + goal.height;
 
-      if (!insideX || !insideY) {
-        playSaveSound("post");
-        scheduleReset("OFF THE MARK.");
-        return;
-      }
-
-      const postMargin = 24;
-      const clippedPost =
-        shot.targetX < goal.x + postMargin ||
-        shot.targetX > goal.x + goal.width - postMargin ||
-        shot.targetY < goal.y + 18;
-
-      if (clippedPost && Math.random() < 0.46) {
+      if (!inside) {
         playSaveSound("post");
         scheduleReset("PING. OFF THE POST.");
         return;
       }
 
-      const goalieWidth = Math.max(66, 102 - Math.min(shotsRef.current, 6) * 4);
-      const goalieTop = goal.y + goal.height * 0.34;
-      const goalieBottom = goal.y + goal.height + 24;
-      const goalieCoversX = Math.abs(shot.targetX - goalieX) < goalieWidth * 0.56;
-      const lowEnoughToSave = shot.targetY > goalieTop - 12 && shot.targetY < goalieBottom;
-      const gloveReach =
-        Math.abs(shot.targetX - goalieX) < goalieWidth * 0.82 &&
-        shot.targetY > goalieTop - 42 &&
-        shot.targetY < goalieTop + 18;
-
-      if ((goalieCoversX && lowEnoughToSave) || gloveReach) {
+      const high = shot.targetY < goal.y + goal.height * 0.45;
+      const reach = ((high ? 34 : 50) - assist() * 5) * goalieScale();
+      if (Math.abs(shot.targetX - goalieX) < reach) {
         playSaveSound("save");
-        scheduleReset("ROBBED.");
+        scheduleReset(high ? "GLOVE SAVE. GO THE OTHER WAY." : "SAVE. AIM FOR A CORNER.");
         return;
       }
 
-      const nextScore = scoreRef.current + 1;
-      scoreRef.current = nextScore;
-      setScore(nextScore);
-      flashUntil = performance.now() + 420;
-      setMessage(nextScore >= GOALS_TO_WIN ? "GAME WINNER." : "GOAL. ONE MORE.");
+      goals += 1;
+      waiting = true;
+      setScore(goals);
+      flashUntil = performance.now() + 500;
 
-      if (nextScore >= GOALS_TO_WIN) {
-        if (!winCalled.current) {
-          winCalled.current = true;
-          window.setTimeout(onWin, 1050);
-        }
+      if (goals >= GOALS_TO_WIN) {
+        won = true;
+        setMessage("GAME WINNER!");
+        winTimer = window.setTimeout(onWin, 1100);
         return;
       }
 
+      setMessage("GOAL! ONE MORE.");
       window.clearTimeout(resetTimer);
       resetTimer = window.setTimeout(() => {
         resetPuck();
-        setMessage("ONE MORE GOAL.");
-      }, 1050);
+        setMessage("ONE MORE FOR THE WIN.");
+      }, 1100);
     };
 
-    const fire = (releaseX: number, releaseY: number) => {
-      const dx = puck.x - releaseX;
-      const dy = puck.y - releaseY;
-      const dragDistance = Math.hypot(dx, dy);
-      const power = clamp((dragDistance - 28) / 155, 0, 1);
-
-      if (power < 0.18) {
-        drag.active = false;
-        setMessage("PULL FARTHER BACK.");
+    const fire = () => {
+      const { power, x, y } = aim();
+      drag.active = false;
+      if (power < 0.1) {
+        setMessage("DRAG A LITTLE FURTHER.");
         return;
       }
 
+      const guessError = (Math.random() - 0.5) * (120 + assist() * 50);
       const goal = net();
-      const horizontalAim = clamp(dx / 145, -1.2, 1.2);
-      const verticalAim = clamp((-dy - 20) / 165, -0.15, 1);
-      const targetX = width / 2 + horizontalAim * goal.width * 0.46;
-      const targetY =
-        goal.y + goal.height * (0.82 - clamp(verticalAim, 0, 1) * 0.67);
-
-      const missPenalty = Math.max(22, 72 - shotsRef.current * 7);
-      const predictionError = (Math.random() - 0.5) * missPenalty * 2;
-      const goalieTargetX = clamp(
-        targetX + predictionError,
-        goal.x + 42,
-        goal.x + goal.width - 42,
-      );
-
       shot.active = true;
       shot.startTime = performance.now();
-      shot.duration = 690 - power * 210;
+      shot.duration = 620 - power * 200;
       shot.fromX = puck.x;
       shot.fromY = puck.y;
-      shot.targetX = targetX;
-      shot.targetY = targetY;
+      shot.targetX = x;
+      shot.targetY = y;
       shot.power = power;
-      shot.goalieTargetX = goalieTargetX;
-      drag.active = false;
+      shot.goalieTargetX = clamp(x + guessError, goal.x + 40, goal.x + goal.width - 40);
 
-      shotsRef.current += 1;
-      setShots(shotsRef.current);
+      shotCount += 1;
+      setShots(shotCount);
       setMessage("SHOT AWAY...");
       playPuckHit(power);
     };
 
     const pointerPosition = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      return {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      };
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
     };
 
     const onPointerDown = (event: PointerEvent) => {
-      if (shot.active || winCalled.current) return;
+      if (shot.active || won || waiting) return;
       const point = pointerPosition(event);
-      if (Math.hypot(point.x - puck.x, point.y - puck.y) > 48) return;
       drag.active = true;
-      drag.x = point.x;
-      drag.y = point.y;
+      drag.startX = drag.x = point.x;
+      drag.startY = drag.y = point.y;
       canvas.setPointerCapture(event.pointerId);
     };
 
@@ -258,244 +207,244 @@ export function HockeyChallenge({ onWin }: Props) {
       if (!drag.active) return;
       const point = pointerPosition(event);
       drag.x = point.x;
-      drag.y = clamp(point.y, puck.y - 35, height - 18);
+      drag.y = point.y;
     };
 
-    const onPointerUp = (event: PointerEvent) => {
-      if (!drag.active) return;
-      const point = pointerPosition(event);
-      fire(point.x, clamp(point.y, puck.y - 35, height - 18));
+    const onPointerUp = () => {
+      if (drag.active) fire();
     };
 
     const drawRink = () => {
       const goal = net();
 
-      const iceGradient = ctx.createLinearGradient(0, 0, 0, height);
-      iceGradient.addColorStop(0, "#d7e8e8");
-      iceGradient.addColorStop(0.45, "#edf5f4");
-      iceGradient.addColorStop(1, "#c7dddd");
-      ctx.fillStyle = iceGradient;
+      const ice = ctx.createLinearGradient(0, 0, 0, height);
+      ice.addColorStop(0, "#cfe3e4");
+      ice.addColorStop(0.5, "#eef6f6");
+      ice.addColorStop(1, "#d6e8e8");
+      ctx.fillStyle = ice;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.fillStyle = "rgba(0, 60, 110, .08)";
-      ctx.beginPath();
-      ctx.ellipse(width / 2, height * 0.58, width * 0.2, height * 0.1, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Boards + glass at the top edge.
+      ctx.fillStyle = "#0b1a12";
+      ctx.fillRect(0, 0, width, goal.y * 0.55);
+      ctx.fillStyle = "#00843d";
+      ctx.fillRect(0, goal.y * 0.55, width, 6);
+      ctx.fillStyle = "#f4f7f6";
+      ctx.fillRect(0, goal.y * 0.55 + 6, width, goal.y * 0.12);
 
-      ctx.strokeStyle = "rgba(198, 24, 48, .52)";
+      // Goal line + crease.
+      ctx.strokeStyle = "rgba(200, 30, 50, .7)";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(width * 0.08, height * 0.53);
-      ctx.lineTo(width * 0.92, height * 0.53);
+      ctx.moveTo(0, goal.y + goal.height);
+      ctx.lineTo(width, goal.y + goal.height);
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(30, 93, 149, .42)";
-      ctx.lineWidth = 2;
+      ctx.fillStyle = "rgba(70, 150, 215, .38)";
       ctx.beginPath();
-      ctx.moveTo(width * 0.18, height);
-      ctx.lineTo(goal.x + 34, goal.y + goal.height);
-      ctx.moveTo(width * 0.82, height);
-      ctx.lineTo(goal.x + goal.width - 34, goal.y + goal.height);
-      ctx.stroke();
-
-      const creaseGradient = ctx.createRadialGradient(
-        width / 2,
-        goal.y + goal.height,
-        8,
-        width / 2,
-        goal.y + goal.height,
-        goal.width * 0.28,
-      );
-      creaseGradient.addColorStop(0, "rgba(76, 156, 211, .34)");
-      creaseGradient.addColorStop(1, "rgba(76, 156, 211, .04)");
-      ctx.fillStyle = creaseGradient;
-      ctx.beginPath();
-      ctx.ellipse(
-        width / 2,
-        goal.y + goal.height,
-        goal.width * 0.27,
-        goal.height * 0.7,
-        0,
-        Math.PI,
-        Math.PI * 2,
-      );
+      ctx.ellipse(width / 2, goal.y + goal.height, goal.width * 0.3, goal.height * 0.55, 0, 0, Math.PI);
       ctx.fill();
 
-      ctx.strokeStyle = "#c92336";
-      ctx.lineWidth = 7;
-      ctx.strokeRect(goal.x, goal.y, goal.width, goal.height);
+      // Faceoff circles.
+      ctx.strokeStyle = "rgba(200, 30, 50, .35)";
+      ctx.lineWidth = 3;
+      [0.18, 0.82].forEach((fx) => {
+        ctx.beginPath();
+        ctx.ellipse(width * fx, height * 0.72, width * 0.13, height * 0.1, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      });
 
-      ctx.strokeStyle = "rgba(92, 121, 129, .36)";
+      // Net: back fill, mesh, red frame.
+      ctx.fillStyle = "rgba(255, 255, 255, .55)";
+      ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+      ctx.strokeStyle = "rgba(90, 110, 118, .4)";
       ctx.lineWidth = 1;
-      for (let i = 1; i < 10; i += 1) {
-        const x = goal.x + (goal.width / 10) * i;
+      for (let i = 1; i < 14; i += 1) {
+        const x = goal.x + (goal.width / 14) * i;
         ctx.beginPath();
-        ctx.moveTo(x, goal.y + 4);
-        ctx.lineTo(x, goal.y + goal.height - 3);
+        ctx.moveTo(x, goal.y);
+        ctx.lineTo(x, goal.y + goal.height);
         ctx.stroke();
       }
-      for (let i = 1; i < 5; i += 1) {
-        const y = goal.y + (goal.height / 5) * i;
+      for (let i = 1; i < 7; i += 1) {
+        const y = goal.y + (goal.height / 7) * i;
         ctx.beginPath();
-        ctx.moveTo(goal.x + 4, y);
-        ctx.lineTo(goal.x + goal.width - 4, y);
+        ctx.moveTo(goal.x, y);
+        ctx.lineTo(goal.x + goal.width, y);
         ctx.stroke();
       }
+      ctx.strokeStyle = "#d0142c";
+      ctx.lineWidth = 9;
+      ctx.beginPath();
+      ctx.moveTo(goal.x, goal.y + goal.height);
+      ctx.lineTo(goal.x, goal.y);
+      ctx.lineTo(goal.x + goal.width, goal.y);
+      ctx.lineTo(goal.x + goal.width, goal.y + goal.height);
+      ctx.stroke();
 
       return goal;
     };
 
     const drawGoalie = (goal: ReturnType<typeof net>) => {
-      const y = goal.y + goal.height * 0.39;
-      const bodyWidth = 78;
-      const bodyHeight = 82;
+      const shrink = (1 - assist() * 0.06) * Math.max(goalieScale(), 0.6);
+      const top = goal.y + goal.height * 0.3;
+      const bodyW = 70 * shrink;
+      const bodyH = goal.height * 0.5;
 
       ctx.save();
-      ctx.translate(goalieX, y);
+      ctx.translate(goalieX, top);
 
-      ctx.fillStyle = "#6f263d";
-      ctx.fillRect(-bodyWidth / 2, 0, bodyWidth, bodyHeight);
-
-      ctx.fillStyle = "#236192";
-      ctx.fillRect(-bodyWidth / 2 + 5, 12, bodyWidth - 10, 14);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "800 17px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("COL", 0, 53);
-
-      ctx.fillStyle = "#eef3f3";
-      ctx.fillRect(-54, bodyHeight - 8, 31, 62);
-      ctx.fillRect(23, bodyHeight - 8, 31, 62);
-
-      ctx.fillStyle = "#17232a";
+      ctx.fillStyle = "rgba(0,0,0,.18)";
       ctx.beginPath();
-      ctx.arc(0, -11, 24, 0, Math.PI * 2);
+      ctx.ellipse(0, goal.height * 0.72, bodyW, 12, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "#eef3f3";
-      ctx.lineWidth = 4;
+
+      // Pads
+      ctx.fillStyle = "#f2f5f5";
+      ctx.fillRect(-bodyW * 0.62, bodyH - 6, bodyW * 0.46, goal.height * 0.36);
+      ctx.fillRect(bodyW * 0.16, bodyH - 6, bodyW * 0.46, goal.height * 0.36);
+      ctx.fillStyle = "#6f263d";
+      ctx.fillRect(-bodyW * 0.62, bodyH + 10, bodyW * 0.46, 6);
+      ctx.fillRect(bodyW * 0.16, bodyH + 10, bodyW * 0.46, 6);
+
+      // Jersey
+      ctx.fillStyle = "#6f263d";
+      ctx.fillRect(-bodyW / 2, 0, bodyW, bodyH);
+      ctx.fillStyle = "#236192";
+      ctx.fillRect(-bodyW / 2, bodyH * 0.2, bodyW, bodyH * 0.14);
+      ctx.fillStyle = "#fff";
+      ctx.font = `800 ${Math.round(16 * shrink)}px Arial`;
+      ctx.textAlign = "center";
+      ctx.fillText("COL", 0, bodyH * 0.7);
+
+      // Mask
+      ctx.fillStyle = "#1b2a31";
+      ctx.beginPath();
+      ctx.arc(0, -14 * shrink, 20 * shrink, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#e7eeee";
+      ctx.lineWidth = 3;
       ctx.stroke();
 
-      ctx.strokeStyle = "#6f263d";
-      ctx.lineWidth = 7;
+      // Glove + blocker
+      ctx.fillStyle = "#8a2f4b";
       ctx.beginPath();
-      ctx.moveTo(36, 26);
-      ctx.lineTo(76, 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = "#554731";
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(-34, 55);
-      ctx.lineTo(-88, 110);
-      ctx.stroke();
+      ctx.arc(bodyW * 0.75, bodyH * 0.25, 13 * shrink, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#e7eeee";
+      ctx.fillRect(-bodyW * 0.95, bodyH * 0.2, 16 * shrink, 22 * shrink);
 
       ctx.restore();
     };
 
-    const drawPuck = () => {
-      if (drag.active) {
-        const dx = puck.x - drag.x;
-        const dy = puck.y - drag.y;
-        const dragDistance = Math.hypot(dx, dy);
-        const power = clamp((dragDistance - 28) / 155, 0, 1);
-        const goal = net();
-        const horizontalAim = clamp(dx / 145, -1.2, 1.2);
-        const verticalAim = clamp((-dy - 20) / 165, -0.15, 1);
-        const targetX = width / 2 + horizontalAim * goal.width * 0.46;
-        const targetY = goal.y + goal.height * (0.82 - clamp(verticalAim, 0, 1) * 0.67);
+    const drawAim = () => {
+      if (!drag.active) return;
+      const { power, x, y } = aim();
+      const ready = power >= 0.1;
+      const color = ready ? "0, 132, 61" : "190, 50, 50";
 
-        ctx.strokeStyle = `rgba(0, 132, 61, ${0.35 + power * 0.55})`;
-        ctx.lineWidth = 3;
-        ctx.setLineDash([9, 10]);
-        ctx.beginPath();
-        ctx.moveTo(puck.x, puck.y);
-        ctx.lineTo(targetX, targetY);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.strokeStyle = power > 0.35 ? "#00843d" : "#b93b3b";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(targetX, targetY, 17, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(targetX - 24, targetY);
-        ctx.lineTo(targetX + 24, targetY);
-        ctx.moveTo(targetX, targetY - 24);
-        ctx.lineTo(targetX, targetY + 24);
-        ctx.stroke();
-
-        ctx.fillStyle = "rgba(0,0,0,.7)";
-        ctx.fillRect(24, height - 28, width - 48, 9);
-        ctx.fillStyle = power > 0.35 ? "#00843d" : "#bd3535";
-        ctx.fillRect(24, height - 28, (width - 48) * power, 9);
-      }
-
-      const radius = PUCK_RADIUS * puck.scale;
-      const gradient = ctx.createRadialGradient(
-        puck.drawX - radius * 0.3,
-        puck.drawY - radius * 0.3,
-        2,
-        puck.drawX,
-        puck.drawY,
-        radius,
-      );
-      gradient.addColorStop(0, "#333");
-      gradient.addColorStop(1, "#040504");
-      ctx.fillStyle = gradient;
+      // Rubber band from the touch point.
+      ctx.strokeStyle = "rgba(0, 0, 0, .25)";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(puck.drawX, puck.drawY, radius, radius * 0.46, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#616161";
-      ctx.lineWidth = 1.5;
+      ctx.moveTo(drag.startX, drag.startY);
+      ctx.lineTo(drag.x, drag.y);
       ctx.stroke();
+
+      ctx.strokeStyle = `rgba(${color}, ${0.45 + power * 0.5})`;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([12, 10]);
+      ctx.beginPath();
+      ctx.moveTo(puck.x, puck.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = `rgb(${color})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, Math.PI * 2);
+      ctx.moveTo(x - 30, y);
+      ctx.lineTo(x + 30, y);
+      ctx.moveTo(x, y - 30);
+      ctx.lineTo(x, y + 30);
+      ctx.stroke();
+
+      const barW = Math.min(360, width - 60);
+      ctx.fillStyle = "rgba(0,0,0,.55)";
+      ctx.fillRect((width - barW) / 2, height - 34, barW, 12);
+      ctx.fillStyle = `rgb(${color})`;
+      ctx.fillRect((width - barW) / 2, height - 34, barW * power, 12);
+    };
+
+    const drawPuck = () => {
+      const r = PUCK_RADIUS * puck.scale;
+      if (!shot.active && !waiting) {
+        // Idle pulse so it's obvious where the shot comes from.
+        const pulse = 1 + Math.sin(performance.now() / 260) * 0.12;
+        ctx.strokeStyle = "rgba(0, 132, 61, .45)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(puck.drawX, puck.drawY, r * 2 * pulse, r * 0.9 * pulse, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(0,0,0,.2)";
+      ctx.beginPath();
+      ctx.ellipse(puck.drawX + 3, puck.drawY + r * 0.35, r, r * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#0b0c0c";
+      ctx.fillRect(puck.drawX - r, puck.drawY - r * 0.35, r * 2, r * 0.35);
+      ctx.beginPath();
+      ctx.ellipse(puck.drawX, puck.drawY, r, r * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#1e2222";
+      ctx.beginPath();
+      ctx.ellipse(puck.drawX, puck.drawY - r * 0.35, r, r * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
     };
 
     const update = (now: number) => {
       const goal = net();
-
       if (!shot.active) {
-        goalieX += goalieVelocity * goalieDirection;
-        if (goalieX > goal.x + goal.width - 58) goalieDirection = -1;
-        if (goalieX < goal.x + 58) goalieDirection = 1;
-      } else {
-        const progress = clamp((now - shot.startTime) / shot.duration, 0, 1);
-        const eased = easeOutCubic(progress);
-        puck.drawX = shot.fromX + (shot.targetX - shot.fromX) * eased;
-        const linearY = shot.fromY + (shot.targetY - shot.fromY) * eased;
-        puck.drawY = linearY - Math.sin(progress * Math.PI) * 22 * shot.power;
-        puck.scale = 1 - progress * 0.56;
-
-        const reactionStart = 0.34 + (1 - shot.power) * 0.13;
-        if (progress > reactionStart) {
-          const reactionProgress = clamp((progress - reactionStart) / (1 - reactionStart), 0, 1);
-          goalieX += (shot.goalieTargetX - goalieX) * (0.08 + reactionProgress * 0.08);
-        }
-
-        if (progress >= 1) {
-          shot.active = false;
-          puck.x = puck.drawX;
-          puck.y = puck.drawY;
-          resolveShot();
-        }
+        const speed = (1.3 - assist() * 0.15) * goalieScale();
+        goalieX += speed * goalieDirection;
+        const margin = 70 * goalieScale();
+        if (goalieX > goal.x + goal.width - margin) goalieDirection = -1;
+        if (goalieX < goal.x + margin) goalieDirection = 1;
+        return;
       }
-    };
 
-    const draw = (now: number) => {
-      const goal = drawRink();
-      drawGoalie(goal);
-      drawPuck();
+      const progress = clamp((now - shot.startTime) / shot.duration, 0, 1);
+      const eased = easeOutCubic(progress);
+      puck.drawX = shot.fromX + (shot.targetX - shot.fromX) * eased;
+      puck.drawY =
+        shot.fromY + (shot.targetY - shot.fromY) * eased - Math.sin(progress * Math.PI) * 30 * shot.power;
+      puck.scale = 1 - progress * 0.55;
 
-      if (now < flashUntil) {
-        ctx.fillStyle = `rgba(0, 250, 0, ${0.22 + Math.sin(now / 28) * 0.12})`;
-        ctx.fillRect(0, 0, width, height);
+      if (progress > 0.4) {
+        goalieX += (shot.goalieTargetX - goalieX) * (0.07 - assist() * 0.008);
+      }
+
+      if (progress >= 1) {
+        shot.active = false;
+        puck.x = puck.drawX;
+        puck.y = puck.drawY;
+        resolveShot();
       }
     };
 
     const loop = (now: number) => {
       update(now);
-      draw(now);
+      const goal = drawRink();
+      const puckBehindGoalie = shot.active || puck.y < height / 2;
+      if (puckBehindGoalie) drawPuck();
+      drawGoalie(goal);
+      if (!puckBehindGoalie) drawPuck();
+      drawAim();
+      if (now < flashUntil) {
+        ctx.fillStyle = `rgba(0, 200, 90, ${0.25 + Math.sin(now / 30) * 0.12})`;
+        ctx.fillRect(0, 0, width, height);
+      }
       animationFrame = requestAnimationFrame(loop);
     };
 
@@ -514,36 +463,37 @@ export function HockeyChallenge({ onWin }: Props) {
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerUp);
       window.clearTimeout(resetTimer);
+      window.clearTimeout(winTimer);
       cancelAnimationFrame(animationFrame);
     };
   }, [onWin]);
 
   return (
     <section className="hockey-game">
-      <div className="hockey-game__broadcast">
+      <canvas ref={canvasRef} className="hockey-game__canvas" />
+
+      <div className="hockey-game__bug">
         <div className="hockey-game__brand">
           <span>FINAL CHALLENGE</span>
           <strong>{birthday.birthdayName.toUpperCase()} SHOOTOUT</strong>
         </div>
-        <div className="hockey-game__score">
+        <div className="hockey-game__stat">
           <span>GOALS</span>
-          <strong>{score}/{GOALS_TO_WIN}</strong>
+          <strong>
+            {score}/{GOALS_TO_WIN}
+          </strong>
         </div>
-        <div className="hockey-game__shots">
+        <div className="hockey-game__stat">
           <span>SHOTS</span>
           <strong>{shots}</strong>
         </div>
       </div>
 
-      <div className="hockey-game__frame">
-        <canvas ref={canvasRef} className="hockey-game__canvas" />
-        <div className="hockey-game__glass" aria-hidden="true" />
+      <div className="hockey-game__message" aria-live="polite">
+        {message}
       </div>
-
-      <div className="hockey-game__message" aria-live="polite">{message}</div>
       <p className="hockey-game__hint">
-        Pull down and sideways from the puck. More pull = more power and elevation.
-        Top corners are harder for the goalie to reach.
+        Press anywhere and pull back (or flick up). Sideways picks the corner, further = higher.
       </p>
     </section>
   );

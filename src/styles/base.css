@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Rajdhani:wght@600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;0,800;0,900;1,800;1,900&family=Graduate&family=Rajdhani:wght@600;700&family=Yellowtail&display=swap");
 
 :root {
   font-family: "Rajdhani", system-ui, sans-serif;
@@ -6,9 +6,9 @@
   background: #030504;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --stars-green: #00843d;
-  --stars-silver: #a7a9ac;
-  --skyline: #00fa00;
+  --stars-green: #006847;
+  --stars-silver: #8f8f8c;
+  --led-green: #2ee88a;
   --ink: #030504;
   --display: "Industry Inc", "Barlow Condensed", "Arial Narrow", sans-serif;
 }
@@ -52,41 +52,81 @@ button {
 .presentation-skip {
   position: fixed;
   z-index: 90;
-  right: 18px;
-  top: 16px;
-}
-
-.presentation-skip button {
+  right: 16px;
+  top: 14px;
   border: 0;
-  background: rgba(0, 0, 0, 0.48);
-  color: rgba(255, 255, 255, 0.6);
-  padding: 8px 11px;
-  letter-spacing: 0.12em;
-  font-size: 0.7rem;
-  cursor: pointer;
-}
-
-.presentation-skip button:hover {
-  color: white;
-}
-
-.arena-button {
-  border: 1px solid rgba(255, 255, 255, 0.36);
-  background: var(--stars-green);
-  color: white;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.8);
   font-family: var(--display);
-  font-weight: 900;
-  font-size: clamp(0.65rem, 1.1vw, 0.88rem);
-  letter-spacing: 0.12em;
-  padding: 10px 18px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
   cursor: pointer;
-  text-transform: uppercase;
-  transition: transform 150ms ease, filter 150ms ease;
 }
 
-.arena-button:hover {
-  filter: brightness(1.2);
-  transform: translateY(-1px);
+.presentation-skip:hover {
+  color: #fff;
+}
+
+.start-cta {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  bottom: clamp(28px, 8vh, 72px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  animation: ctaIn 800ms 600ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.start-cta__button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 0;
+  padding: 14px 28px 14px 14px;
+  background: #fff;
+  color: #004d33;
+  font-family: var(--display);
+  font-size: clamp(1.1rem, 2.6vw, 1.6rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: skewX(-8deg);
+  box-shadow: 0 0 0 4px rgba(46, 232, 138, 0.5), 0 14px 40px rgba(0, 0, 0, 0.6);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.start-cta__button:hover,
+.start-cta__button:focus-visible {
+  transform: skewX(-8deg) scale(1.04);
+  box-shadow: 0 0 0 6px rgba(46, 232, 138, 0.8), 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+
+.start-cta__play {
+  display: grid;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  background: #006847;
+  color: #fff;
+  font-size: 0.8em;
+}
+
+.start-cta small {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 4px #000;
+}
+
+@keyframes ctaIn {
+  from { opacity: 0; translate: 0 30px; }
+  to { opacity: 1; translate: 0 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

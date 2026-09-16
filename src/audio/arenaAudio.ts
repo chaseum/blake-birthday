@@ -85,3 +85,30 @@ export function playGoalCelebration() {
     oscillator.stop(now + 2.2);
   });
 }
+
+/** Filtered-noise swoosh for camera whips. */
+export function playWhoosh(intensity = 1) {
+  const ctx = getContext();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const length = 0.45;
+  const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * length), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+
+  const source = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  source.buffer = buffer;
+  filter.type = "bandpass";
+  filter.Q.value = 1.4;
+  filter.frequency.setValueAtTime(300, now);
+  filter.frequency.exponentialRampToValueAtTime(2600 * intensity + 400, now + length);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.16 * intensity, now + length * 0.7);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + length);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  source.start(now);
+}

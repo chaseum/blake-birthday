@@ -11,6 +11,8 @@ export type MemoryPhoto = {
   alt: string;
   caption: string;
   position?: string;
+  /** "contain" for art/illustrations that must not be cropped. */
+  fit?: "cover" | "contain";
 };
 
 export type BroadcastStat = {
@@ -29,6 +31,7 @@ export type BirthdayConfig = {
   birthdayName: string;
   partnerName: string;
   venue: string;
+  venueAddress: [string, string];
   opponent: string;
   homeTeam: string;
   gameDay: string;

@@ -1,23 +1,19 @@
 import type { BirthdayConfig } from "./types";
 
-const valentineAssets =
-  "https://raw.githubusercontent.com/chaseum/valentines-day-website/main/assets";
+const photo = (name: string) => `${import.meta.env.BASE_URL}photos/${name}`;
 
-/**
- * Personal content lives here. The presentation and game should not need edits
- * when you swap photos, jokes, seats, or matchup details.
- */
 export const birthday: BirthdayConfig = {
   birthdayName: "Blake",
   partnerName: "Chase",
   venue: "American Airlines Center",
+  venueAddress: ["2500 VICTORY AVENUE", "DALLAS, TEXAS 75219"],
   opponent: "Colorado Avalanche",
   homeTeam: "Dallas Stars",
   gameDay: "FRIDAY",
   gameDate: "JAN 22 2027",
   gameTime: "7:00 PM",
-  arenaImage:
-    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/American_Airlines_Center_Interior_2026.jpg/1280px-American_Airlines_Center_Interior_2026.jpg",
+  // Surface/camera coordinates in src/arena/geometry.ts are measured on this exact photo.
+  arenaImage: `${import.meta.env.BASE_URL}arena/aac-interior.jpg`,
   arenaCredit: {
     label: "American Airlines Center Interior 2026 · BullDawg2021",
     sourceUrl:
@@ -26,85 +22,31 @@ export const birthday: BirthdayConfig = {
     licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
   },
 
+  // Add more photos: drop files in public/photos and add entries below.
   lineup: [
-    {
-      name: "BLAKE",
-      number: "01",
-      role: "BIRTHDAY CAPTAIN",
-      image: `${valentineAssets}/IMG_7447.JPG`,
-      imagePosition: "50% 42%",
-    },
-    {
-      name: "CHASE",
-      number: "02",
-      role: "SECRET GENERAL MANAGER",
-      image: `${valentineAssets}/IMG_7448.JPG`,
-      imagePosition: "50% 55%",
-    },
-    {
-      name: "THE DUO",
-      number: "24",
-      role: "FIRST LINE CHEMISTRY",
-      image: `${valentineAssets}/IMG_0667.JPEG`,
-      imagePosition: "50% 34%",
-    },
-    {
-      name: "THE BENCH",
-      number: "∞",
-      role: "ELITE MORAL SUPPORT",
-      image: `${valentineAssets}/me-and-blake-pets.png`,
-      imagePosition: "50% 50%",
-    },
+    { name: "BLAKE", number: "01", role: "BIRTHDAY CAPTAIN", image: photo("navasota.jpg"), imagePosition: "50% 30%" },
+    { name: "CHASE", number: "02", role: "SECRET GENERAL MANAGER", image: photo("hackathon.jpg"), imagePosition: "50% 45%" },
+    { name: "THE DUO", number: "24", role: "FIRST LINE CHEMISTRY", image: photo("duo.jpg"), imagePosition: "55% 40%" },
+    { name: "THE PUP", number: "12", role: "HEAD OF MORALE", image: photo("dog.jpg"), imagePosition: "50% 35%" },
+    { name: "THE CAT", number: "99", role: "ENFORCER (NAPS)", image: photo("cat.jpg"), imagePosition: "50% 45%" },
   ],
 
   memories: [
-    {
-      src: `${valentineAssets}/IMG_7447.JPG`,
-      alt: "Blake and Chase together",
-      caption: "Navasota — where the franchise started",
-      position: "50% 38%",
-    },
-    {
-      src: `${valentineAssets}/IMG_7448.JPG`,
-      alt: "Blake and Chase at a hackathon",
-      caption: "Two hackathons survived together",
-      position: "50% 58%",
-    },
-    {
-      src: `${valentineAssets}/IMG_0667.JPEG`,
-      alt: "Blake and Chase together",
-      caption: "Still the easiest person to choose",
-      position: "50% 32%",
-    },
-    {
-      src: `${valentineAssets}/me-and-blake-pets.png`,
-      alt: "Blake and Chase with their pets",
-      caption: "Full roster photo",
-      position: "50% 50%",
-    },
+    { src: photo("navasota.jpg"), alt: "Blake asleep", caption: "Navasota � where the franchise started", position: "50% 35%" },
+    { src: photo("hackathon.jpg"), alt: "Hacking at a hackathon", caption: "Two hackathons survived together", position: "50% 55%" },
+    { src: photo("duo.jpg"), alt: "Blake and Chase in a crowd", caption: "Still the easiest person to choose", position: "50% 40%" },
+    { src: photo("pets.jpg"), alt: "Pixel art of the dog and cat", caption: "Full roster photo", fit: "contain" },
+    { src: photo("dog.jpg"), alt: "Pixel art dog", caption: "Scouting report: very good boy", fit: "contain" },
+    { src: photo("cat.jpg"), alt: "Pixel art cat", caption: "Veteran presence in the locker room", fit: "contain" },
   ],
 
   stats: [
-    {
-      label: "FIRST MET",
-      value: "NAVASOTA",
-      detail: "The inaugural season.",
-    },
-    {
-      label: "STARTED TALKING",
-      value: "JULY 9",
-      detail: "Front office never recovered.",
-    },
-    {
-      label: "HACKATHONS",
-      value: "2",
-      detail: "Undefeated in sleep deprivation.",
-    },
-    {
-      label: "CHEMISTRY",
-      value: "100",
-      detail: "Scouts call it statistically suspicious.",
-    },
+    { label: "FIRST MET", value: "NAVASOTA", detail: "The inaugural season." },
+    { label: "HACKATHONS", value: "2", detail: "Undefeated in sleep deprivation." },
+    { label: "STARTED TALKING", value: "JULY 9", detail: "Front office never recovered." },
+    { label: "ROSTER SIZE", value: "2+2", detail: "Two humans. Two pets. Zero trades." },
+    { label: "CHEMISTRY", value: "100", detail: "Scouts call it statistically suspicious." },
+    { label: "BIRTHDAY", value: "LVL UP", detail: "Tonight's featured fan." },
   ],
 
   // Replace these three fields once you want the real seat assignment shown.

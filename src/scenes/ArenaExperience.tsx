@@ -1,141 +1,222 @@
 import { useCallback, useEffect, useState } from "react";
+import { SHOTS } from "../arena/geometry";
 import { birthday } from "../config";
-import { ArenaWorld, type CameraMode } from "../components/ArenaWorld";
+import { ArenaWorld, type CameraMove } from "../components/ArenaWorld";
 import {
   GoalBoard,
   HighlightsBoard,
   IceDiveBoard,
   LineupBoard,
+  LineupIntroBoard,
   PregameBoard,
   RevealBoard,
 } from "../components/BroadcastBoards";
 import { PhysicalTickets } from "../components/PhysicalTickets";
 import { HockeyChallenge } from "../game/HockeyChallenge";
-import { playArenaStart, playGoalCelebration } from "../audio/arenaAudio";
+import { playArenaStart, playGoalCelebration, playWhoosh } from "../audio/arenaAudio";
 
-type Stage =
-  | "pregame"
-  | "lineup"
-  | "highlights"
-  | "iceDive"
-  | "shootout"
-  | "goal"
-  | "tickets"
-  | "final";
+const STAGES = [
+  "pregame",
+  "lineupIntro",
+  "lineup",
+  "highlights",
+  "iceDive",
+  "shootout",
+  "goal",
+  "tickets",
+  "final",
+] as const;
+type Stage = (typeof STAGES)[number];
 
-function cameraFor(stage: Stage): CameraMode {
-  if (stage === "iceDive" || stage === "shootout") return "ice";
-  if (stage === "goal") return "goal";
-  if (stage === "lineup" || stage === "highlights" || stage === "tickets") {
-    return "jumbotron";
-  }
-  return "wide";
+const LINEUP_BEAT = 2400;
+const HIGHLIGHT_BEAT = 2900;
+
+// Module-level so a camera only "moves" (and blurs) when the shot really changes.
+const CAM = {
+  establishing: { shot: SHOTS.establishing, duration: 0 },
+  pushIn: { shot: SHOTS.wide, duration: 14000, ease: "cubic-bezier(0.3, 0, 0.7, 1)" },
+  toJumbotron: { shot: SHOTS.jumbotron, duration: 2100, blur: true },
+  jumbotronTight: { shot: SHOTS.jumbotronTight, duration: 1400 },
+  jumbotron: { shot: SHOTS.jumbotron, duration: 1200 },
+  sky: { shot: SHOTS.sky, duration: 950, ease: "cubic-bezier(0.5, 0, 0.3, 1)", blur: true },
+  iceWide: { shot: SHOTS.iceWide, duration: 560, ease: "cubic-bezier(0.7, 0, 0.3, 1)", blur: true },
+  iceMid: { shot: SHOTS.iceMid, duration: 440, ease: "cubic-bezier(0.7, 0, 0.3, 1)", blur: true },
+  puck: { shot: SHOTS.puck, duration: 620, ease: "cubic-bezier(0.8, 0, 0.2, 1)", blur: true },
+  ticketReveal: { shot: SHOTS.ticketReveal, duration: 1600 },
+  goalReturn: { shot: SHOTS.jumbotron, duration: 1350, ease: "cubic-bezier(0.2, 0.8, 0.2, 1)", blur: true },
+} satisfies Record<string, CameraMove>;
+
+const RIBBON: Record<Stage, string> = {
+  pregame: "WELCOME TO BIRTHDAY NIGHT · ",
+  lineupIntro: "TONIGHT'S STARTING LINEUP · ",
+  lineup: "STARTING LINEUP · TEAM US · ",
+  highlights: "SEASON HIGHLIGHTS · TEAM US · ",
+  iceDive: "SHOOTOUT · SCORE 2 TO WIN · ",
+  shootout: "SHOOTOUT · SCORE 2 TO WIN · ",
+  goal: "GOAL · ",
+  tickets: `COL @ DAL · ${birthday.gameDay} ${birthday.gameDate} · ${birthday.gameTime} · `,
+  final: `COL @ DAL · ${birthday.gameDay} ${birthday.gameDate} · ${birthday.gameTime} · `,
+};
+
+/** Runs `[delayMs, action]` steps in order; returns a cleanup. */
+function timeline(steps: [number, () => void][]) {
+  let elapsed = 0;
+  const timers = steps.map(([delay, action]) => {
+    elapsed += delay;
+    return window.setTimeout(action, elapsed);
+  });
+  return () => timers.forEach((timer) => window.clearTimeout(timer));
 }
 
+// Dev only: jump straight to a stage, e.g. /?stage=tickets
+const devStage = import.meta.env.DEV
+  ? STAGES.find((name) => name === new URLSearchParams(window.location.search).get("stage"))
+  : undefined;
+
 export function ArenaExperience() {
-  const [stage, setStage] = useState<Stage>("pregame");
-  const [lineupIndex, setLineupIndex] = useState(0);
-  const [highlightIndex, setHighlightIndex] = useState(0);
+  const [stage, setStage] = useState<Stage>(devStage ?? "pregame");
+  const [camera, setCamera] = useState<CameraMove>(CAM.establishing);
+  const [beat, setBeat] = useState(0);
+  const [flashKey, setFlashKey] = useState(0);
+  const [speedLines, setSpeedLines] = useState(false);
+  const [showPuck, setShowPuck] = useState(false);
 
-  const start = useCallback(() => {
+  const next = useCallback(() => {
+    setStage((current) => STAGES[Math.min(STAGES.indexOf(current) + 1, STAGES.length - 1)]);
+  }, []);
+  const flash = () => setFlashKey((key) => key + 1);
+
+  const start = () => {
     playArenaStart();
-    setStage("lineup");
-  }, []);
-
-  const winShootout = useCallback(() => {
-    setStage("goal");
-  }, []);
+    next();
+  };
 
   useEffect(() => {
-    if (stage !== "lineup") return;
+    setBeat(0);
+    setSpeedLines(false);
+    setShowPuck(false);
+    const advanceBeat = () => setBeat((current) => current + 1);
 
-    setLineupIndex(0);
-    const interval = window.setInterval(() => {
-      setLineupIndex((current) =>
-        Math.min(current + 1, birthday.lineup.length - 1),
-      );
-    }, 2200);
+    switch (stage) {
+      case "pregame":
+        setCamera(CAM.establishing);
+        return timeline([[60, () => setCamera(CAM.pushIn)]]);
 
-    const timeout = window.setTimeout(() => setStage("highlights"), 9200);
+      case "lineupIntro":
+        setCamera(CAM.toJumbotron);
+        return timeline([[2900, next]]);
 
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
-    };
-  }, [stage]);
+      case "lineup": {
+        setCamera(CAM.jumbotronTight);
+        const beats = birthday.lineup.length;
+        return timeline([
+          ...Array.from({ length: beats - 1 }, (): [number, () => void] => [LINEUP_BEAT, advanceBeat]),
+          [LINEUP_BEAT + 400, next],
+        ]);
+      }
 
-  useEffect(() => {
-    if (stage !== "highlights") return;
+      case "highlights": {
+        setCamera(CAM.jumbotron);
+        const beats = birthday.memories.length;
+        return timeline([
+          ...Array.from({ length: beats - 1 }, (): [number, () => void] => [HIGHLIGHT_BEAT, advanceBeat]),
+          [HIGHLIGHT_BEAT, next],
+        ]);
+      }
 
-    setHighlightIndex(0);
-    const interval = window.setInterval(() => {
-      setHighlightIndex((current) => (current + 1) % birthday.stats.length);
-    }, 1900);
-    const timeout = window.setTimeout(() => setStage("iceDive"), 8500);
+      case "iceDive":
+        // GTA-style switch: pull way out, then three hard cuts down onto the puck.
+        setCamera(CAM.jumbotron);
+        setShowPuck(true);
+        return timeline([
+          [1300, () => { playWhoosh(0.5); setCamera(CAM.sky); }],
+          [1150, () => { playWhoosh(0.8); flash(); setCamera(CAM.iceWide); }],
+          [700, () => { playWhoosh(0.9); flash(); setCamera(CAM.iceMid); }],
+          [560, () => { playWhoosh(1); setSpeedLines(true); setCamera(CAM.puck); }],
+          [700, () => { flash(); next(); }],
+        ]);
 
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
-    };
-  }, [stage]);
+      case "shootout":
+        setCamera(CAM.puck);
+        return;
 
-  useEffect(() => {
-    if (stage !== "iceDive") return;
-    const timeout = window.setTimeout(() => setStage("shootout"), 2500);
-    return () => window.clearTimeout(timeout);
-  }, [stage]);
+      case "goal":
+        playGoalCelebration();
+        setCamera(CAM.goalReturn);
+        return timeline([[4600, next]]);
 
-  useEffect(() => {
-    if (stage !== "goal") return;
-    playGoalCelebration();
-    const timeout = window.setTimeout(() => setStage("tickets"), 3100);
-    return () => window.clearTimeout(timeout);
-  }, [stage]);
+      case "tickets":
+        setCamera(CAM.ticketReveal);
+        return timeline([[14000, next]]);
 
-  useEffect(() => {
-    if (stage !== "tickets") return;
-    const timeout = window.setTimeout(() => setStage("final"), 7800);
-    return () => window.clearTimeout(timeout);
-  }, [stage]);
+      case "final":
+        return;
+    }
+  }, [stage, next]);
 
-  let board = <PregameBoard onStart={start} />;
-  if (stage === "lineup") board = <LineupBoard activeIndex={lineupIndex} />;
-  if (stage === "highlights") board = <HighlightsBoard activeIndex={highlightIndex} />;
+  let board = <PregameBoard />;
+  if (stage === "lineupIntro") board = <LineupIntroBoard />;
+  if (stage === "lineup") board = <LineupBoard activeIndex={beat} />;
+  if (stage === "highlights") board = <HighlightsBoard activeIndex={beat} />;
   if (stage === "iceDive" || stage === "shootout") board = <IceDiveBoard />;
   if (stage === "goal") board = <GoalBoard />;
   if (stage === "tickets" || stage === "final") board = <RevealBoard />;
+
+  const skippable = stage !== "pregame" && stage !== "shootout" && stage !== "final";
 
   return (
     <main className={`experience experience--${stage}`}>
       <ArenaWorld
         image={birthday.arenaImage}
-        camera={cameraFor(stage)}
+        camera={camera}
+        ringText={`HAPPY BIRTHDAY ${birthday.birthdayName.toUpperCase()} · DALLAS STARS · FEATURED FAN · `}
+        ribbonText={RIBBON[stage]}
         goalMode={stage === "goal"}
-        dim={stage === "shootout"}
+        showPuck={showPuck || stage === "shootout"}
+        speedLines={speedLines}
+        flashKey={flashKey}
         credit={birthday.arenaCredit}
       >
         {board}
       </ArenaWorld>
 
-      {stage === "shootout" ? (
-        <div className="game-overlay">
-          <HockeyChallenge onWin={winShootout} />
+      {stage === "pregame" ? (
+        <div className="start-cta">
+          <button className="start-cta__button" onClick={start}>
+            <span className="start-cta__play">▶</span>
+            START THE PRESENTATION
+          </button>
+          <small>Sound on · best in fullscreen</small>
         </div>
       ) : null}
 
-      {stage === "tickets" || stage === "final" ? <PhysicalTickets /> : null}
+      {stage === "shootout" ? (
+        <div className="game-overlay">
+          <HockeyChallenge onWin={next} />
+        </div>
+      ) : null}
+
+      {stage === "tickets" ? (
+        <>
+          <PhysicalTickets />
+          <button className="tickets-continue" onClick={next}>
+            CONTINUE ›
+          </button>
+        </>
+      ) : null}
 
       {stage === "final" ? (
         <section className="final-note">
           <div className="final-note__photos" aria-hidden="true">
-            {birthday.memories.slice(0, 3).map((memory, index) => (
+            {birthday.memories.slice(0, 4).map((memory, index) => (
               <img
                 key={memory.src}
                 src={memory.src}
                 alt=""
                 style={{
                   objectPosition: memory.position ?? "50% 50%",
-                  transform: `rotate(${(index - 1) * 4}deg) translateY(${index % 2 ? 8 : 0}px)`,
+                  objectFit: memory.fit ?? "cover",
+                  transform: `rotate(${[-6, 4, -2, 7][index]}deg)`,
                 }}
               />
             ))}
@@ -144,31 +225,18 @@ export function ArenaExperience() {
             <span>ONE MORE THING</span>
             <h1>Happy birthday, {birthday.birthdayName}.</h1>
             <p>{birthday.note}</p>
-            <button
-              className="final-note__replay"
-              onClick={() => setStage("pregame")}
-            >
+            <button className="final-note__replay" onClick={() => setStage("pregame")}>
               REPLAY PRESENTATION
             </button>
           </div>
         </section>
       ) : null}
 
-      <div className="presentation-skip" aria-hidden={stage === "pregame" || stage === "shootout" || stage === "final"}>
-        {stage !== "pregame" && stage !== "shootout" && stage !== "final" ? (
-          <button
-            onClick={() => {
-              if (stage === "lineup") setStage("highlights");
-              else if (stage === "highlights") setStage("iceDive");
-              else if (stage === "iceDive") setStage("shootout");
-              else if (stage === "goal") setStage("tickets");
-              else if (stage === "tickets") setStage("final");
-            }}
-          >
-            SKIP ›
-          </button>
-        ) : null}
-      </div>
+      {skippable ? (
+        <button className="presentation-skip" onClick={next}>
+          SKIP ›
+        </button>
+      ) : null}
     </main>
   );
 }
