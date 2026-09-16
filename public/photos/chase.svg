@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+  <rect width="800" height="1000" fill="#101814"/>
+  <circle cx="400" cy="330" r="150" fill="#a7a9ac"/>
+  <rect x="210" y="520" width="380" height="330" rx="180" fill="#a7a9ac"/>
+  <text x="400" y="930" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#fff">REPLACE WITH CHASE PHOTO</text>
+</svg>
