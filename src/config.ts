@@ -1,10 +1,11 @@
 import type { BirthdayConfig } from "./types";
 
+const valentineAssets =
+  "https://raw.githubusercontent.com/chaseum/valentines-day-website/main/assets";
+
 /**
- * Edit this file first.
- *
- * Everything personal is kept here so the site logic does not become
- * a pile of hard-coded strings.
+ * Personal content lives here. The presentation and game should not need edits
+ * when you swap photos, jokes, seats, or matchup details.
  */
 export const birthday: BirthdayConfig = {
   birthdayName: "Blake",
@@ -12,57 +13,107 @@ export const birthday: BirthdayConfig = {
   venue: "American Airlines Center",
   opponent: "Colorado Avalanche",
   homeTeam: "Dallas Stars",
-  gameDate: "Friday · January 22, 2027",
+  gameDay: "FRIDAY",
+  gameDate: "JAN 22 2027",
   gameTime: "7:00 PM",
-  seatText: "Section ___ · Row ___ · Seats ___–___",
+  arenaImage:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/American_Airlines_Center_Interior_2026.jpg/1280px-American_Airlines_Center_Interior_2026.jpg",
+  arenaCredit: {
+    label: "American Airlines Center Interior 2026 · BullDawg2021",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:American_Airlines_Center_Interior_2026.jpg",
+    license: "CC BY 4.0",
+    licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+  },
 
   lineup: [
     {
-      name: "Blake",
+      name: "BLAKE",
       number: "01",
-      position: "Birthday Captain",
-      team: "Team Us",
-      image: "/photos/blake.svg",
-      bullets: [
-        "Dallas Stars loyalist",
-        "Elite boyfriend metrics",
-        "Birthday status: activated",
-      ],
+      role: "BIRTHDAY CAPTAIN",
+      image: `${valentineAssets}/IMG_7447.JPG`,
+      imagePosition: "50% 42%",
     },
     {
-      name: "Chase",
+      name: "CHASE",
       number: "02",
-      position: "Secret General Manager",
-      team: "Team Us",
-      image: "/photos/chase.svg",
-      bullets: [
-        "Responsible for suspicious roster moves",
-        "Currently hiding one transaction",
-        "Contract: renewed indefinitely",
-      ],
+      role: "SECRET GENERAL MANAGER",
+      image: `${valentineAssets}/IMG_7448.JPG`,
+      imagePosition: "50% 55%",
+    },
+    {
+      name: "THE DUO",
+      number: "24",
+      role: "FIRST LINE CHEMISTRY",
+      image: `${valentineAssets}/IMG_0667.JPEG`,
+      imagePosition: "50% 34%",
+    },
+    {
+      name: "THE BENCH",
+      number: "∞",
+      role: "ELITE MORAL SUPPORT",
+      image: `${valentineAssets}/me-and-blake-pets.png`,
+      imagePosition: "50% 50%",
     },
   ],
 
-  highlights: [
+  memories: [
     {
-      label: "Seasons together",
-      value: "∞",
-      detail: "Front office expects an extension.",
+      src: `${valentineAssets}/IMG_7447.JPG`,
+      alt: "Blake and Chase together",
+      caption: "Navasota — where the franchise started",
+      position: "50% 38%",
     },
     {
-      label: "Hackathons survived",
+      src: `${valentineAssets}/IMG_7448.JPG`,
+      alt: "Blake and Chase at a hackathon",
+      caption: "Two hackathons survived together",
+      position: "50% 58%",
+    },
+    {
+      src: `${valentineAssets}/IMG_0667.JPEG`,
+      alt: "Blake and Chase together",
+      caption: "Still the easiest person to choose",
+      position: "50% 32%",
+    },
+    {
+      src: `${valentineAssets}/me-and-blake-pets.png`,
+      alt: "Blake and Chase with their pets",
+      caption: "Full roster photo",
+      position: "50% 50%",
+    },
+  ],
+
+  stats: [
+    {
+      label: "FIRST MET",
+      value: "NAVASOTA",
+      detail: "The inaugural season.",
+    },
+    {
+      label: "STARTED TALKING",
+      value: "JULY 9",
+      detail: "Front office never recovered.",
+    },
+    {
+      label: "HACKATHONS",
       value: "2",
-      detail: "Somehow still speaking afterward.",
+      detail: "Undefeated in sleep deprivation.",
     },
     {
-      label: "Road record",
-      value: "UNDEFEATED",
-      detail: "As long as snacks are involved.",
+      label: "CHEMISTRY",
+      value: "100",
+      detail: "Scouts call it statistically suspicious.",
     },
   ],
 
-  revealPhoto: "/photos/us.svg",
+  // Replace these three fields once you want the real seat assignment shown.
+  ticket: {
+    section: "---",
+    row: "---",
+    seats: ["---", "---"],
+  },
 
   note:
-    "Happy birthday, my love. I wanted your present to feel like more than opening an envelope, so you had to win it first. I cannot wait to go watch the Stars with you. See you at puck drop <3",
+    "Happy birthday, my love. I wanted your present to feel like more than opening an envelope, so obviously I made you play hockey for it. I cannot wait to go watch the Stars with you. See you at puck drop <3",
 };

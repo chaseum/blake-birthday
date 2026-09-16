@@ -1,16 +1,28 @@
-export type Highlight = {
-  label: string;
-  value: string;
-  detail?: string;
-};
-
-export type PlayerCard = {
+export type LineupMember = {
   name: string;
   number: string;
-  position: string;
-  team: string;
+  role: string;
   image: string;
-  bullets: string[];
+  imagePosition?: string;
+};
+
+export type MemoryPhoto = {
+  src: string;
+  alt: string;
+  caption: string;
+  position?: string;
+};
+
+export type BroadcastStat = {
+  label: string;
+  value: string;
+  detail: string;
+};
+
+export type TicketDetails = {
+  section: string;
+  row: string;
+  seats: [string, string];
 };
 
 export type BirthdayConfig = {
@@ -19,11 +31,19 @@ export type BirthdayConfig = {
   venue: string;
   opponent: string;
   homeTeam: string;
+  gameDay: string;
   gameDate: string;
   gameTime: string;
-  seatText: string;
-  lineup: PlayerCard[];
-  highlights: Highlight[];
-  revealPhoto: string;
+  arenaImage: string;
+  arenaCredit: {
+    label: string;
+    sourceUrl: string;
+    license: string;
+    licenseUrl: string;
+  };
+  lineup: LineupMember[];
+  memories: MemoryPhoto[];
+  stats: BroadcastStat[];
+  ticket: TicketDetails;
   note: string;
 };
