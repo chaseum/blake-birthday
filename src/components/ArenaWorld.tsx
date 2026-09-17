@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { ARENA, PUCK_SPOT, RING_RUNS, SURFACES, frameShot, type Rect } from "../arena/geometry";
 import { ArenaRibbon } from "./ArenaRibbon";
 import { ArenaSurface } from "./ArenaSurface";
+import { CatEasterEgg } from "./CatEasterEgg";
 import { CALIBRATION_SHOTS, CalibrationControls, CalibrationGuides } from "./CalibrationOverlay";
 import { IceSkaters } from "./IceSkaters";
 import { JumbotronSurface } from "./Jumbotron";
@@ -26,6 +27,8 @@ type ArenaWorldProps = {
   homeScore?: number;
   showPuck?: boolean;
   showSkaters?: boolean;
+  /** Shows the hidden cat; called when it is clicked. */
+  onCatFind?: () => void;
   speedLines?: boolean;
   flashKey?: number;
   credit?: {
@@ -61,6 +64,7 @@ export function ArenaWorld({
   homeScore = 0,
   showPuck = false,
   showSkaters = false,
+  onCatFind,
   speedLines = false,
   flashKey = 0,
   credit,
@@ -102,6 +106,7 @@ export function ArenaWorld({
         <img className="arena-photo" src={image} alt="American Airlines Center ice rink" />
 
         {showSkaters ? <IceSkaters /> : null}
+        {onCatFind ? <CatEasterEgg onFind={onCatFind} /> : null}
 
         {RING_RUNS.map(({ name, reverse }) => (
           <ArenaSurface key={name} name={name} className="led ring-board">

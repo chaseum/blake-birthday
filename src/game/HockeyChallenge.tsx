@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { birthday } from "../config";
 import { playGoalCelebration, playPuckHit, playSaveSound } from "../audio/arenaAudio";
+import { setMix } from "../audio/AudioDirector";
 import * as art from "./pixelArt";
 import {
   TUNING,
@@ -49,6 +50,9 @@ export function HockeyChallenge({ onWin }: Props) {
     canvas.focus();
 
     let layout: art.Layout;
+    // No layout until the canvas has a real, non-zero size (see resize).
+    let ready = false;
+    let sized = "";
     let rink: HTMLCanvasElement;
     let crowd: HTMLCanvasElement[] = [];
     let frame = 0;
@@ -94,11 +98,17 @@ export function HockeyChallenge({ onWin }: Props) {
       trail.length = 0;
     };
 
+    // Driven by a ResizeObserver: the overlay can mount before it has a size (0×0 on the
+    // first frame), and a 0-sized layout used to throw in drawImage and kill the loop.
     const resize = () => {
-      const r = canvas.getBoundingClientRect();
-      const landscape = r.width >= r.height;
-      const w = landscape ? Math.round((LOGICAL * r.width) / r.height) : LOGICAL_PORTRAIT;
-      const h = landscape ? LOGICAL : Math.round((LOGICAL_PORTRAIT * r.height) / r.width);
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      if (cw <= 0 || ch <= 0) return;
+      const landscape = cw >= ch;
+      const w = landscape ? Math.round((LOGICAL * cw) / ch) : LOGICAL_PORTRAIT;
+      const h = landscape ? LOGICAL : Math.round((LOGICAL_PORTRAIT * ch) / cw);
+      if (w <= 0 || h <= 0 || `${w}x${h}` === sized) return;
+      sized = `${w}x${h}`;
       canvas.width = w;
       canvas.height = h;
       ctx.imageSmoothingEnabled = false;
@@ -112,9 +122,11 @@ export function HockeyChallenge({ onWin }: Props) {
       aim.x = cx + 28;
       aim.y = layout.net.top + 9;
       if (phase === "aim") resetPuck();
+      ready = true;
     };
 
     const setAim = (x: number, y: number) => {
+      if (!ready) return;
       const { net, cx } = layout;
       aim.x = clamp(x, net.left - 10, net.right + 10);
       aim.y = clamp(y, net.top - 8, net.line - 1);
@@ -126,7 +138,7 @@ export function HockeyChallenge({ onWin }: Props) {
     const wobble = () => Math.sin(clock * 9) * Math.min(2.5, heldAtMax * 2);
 
     const startCharge = () => {
-      if (phase !== "aim" || charging) return;
+      if (!ready || phase !== "aim" || charging) return;
       charging = true;
       chargeStart = performance.now();
     };
@@ -171,6 +183,7 @@ export function HockeyChallenge({ onWin }: Props) {
         puck.y = shot.y - 1;
         setScored(true);
         setMessage("GOAL!!!");
+        setMix("goal");
         playGoalCelebration();
         window.setTimeout(() => (timeScale = 1), 700);
         winTimer = window.setTimeout(onWin, 2800);
@@ -284,7 +297,7 @@ export function HockeyChallenge({ onWin }: Props) {
       if (!inNet) art.drawPuck(ctx, puck.x, puck.y, puck.ground);
 
       const x = Math.round(player.x);
-      art.drawPlayer(ctx, x, playerY, charging ? power : 0, follow, birthday.lineup[0]?.number ?? "01");
+      art.drawPlayer(ctx, x, playerY, charging ? power : 0, follow, birthday.playerNumber);
 
       if (phase === "aim") {
         const color = art.powerColor(charging ? power : 1);
@@ -304,14 +317,22 @@ export function HockeyChallenge({ onWin }: Props) {
 
     let raf = 0;
     const loop = (now: number) => {
-      const dtReal = Math.min(0.05, (now - last) / 1000);
+      // Schedule first: a throw below must never stop the game.
+      raf = requestAnimationFrame(loop);
+      // The first rAF timestamp can predate the `last` taken at setup; a negative dt made
+      // `real` negative and indexed crowd[-1] (the old intermittent blank screen).
+      const dtReal = Math.min(0.05, Math.max(0, (now - last) / 1000));
       last = now;
+      if (!ready) return;
       real += dtReal;
       const dt = dtReal * timeScale;
       clock += dt;
-      update(dt);
-      draw();
-      raf = requestAnimationFrame(loop);
+      try {
+        update(dt);
+        draw();
+      } catch (error) {
+        console.error("shootout frame failed", error);
+      }
     };
 
     const toLogical = (e: PointerEvent) => {
@@ -359,7 +380,8 @@ export function HockeyChallenge({ onWin }: Props) {
     };
 
     resize();
-    window.addEventListener("resize", resize);
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointermove", onPointerMove);
     canvas.addEventListener("pointerup", onPointerUp);
@@ -369,7 +391,7 @@ export function HockeyChallenge({ onWin }: Props) {
     raf = requestAnimationFrame(loop);
 
     return () => {
-      window.removeEventListener("resize", resize);
+      observer.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);

@@ -22,14 +22,25 @@ The arena photo *is* the UI. Nothing is drawn on top as a fake scoreboard: the r
 - The main screen is composited like a photographed LED: soft focus, dimmed whites, green cast, pixel grid, noise, glare, vignette, feathered edges and a bloom layer (`.jumbo-screen`, `.jumbo-glass`, `.jumbo-bloom` in `arena.css`).
 - Every visible LED face is its own quad: `mainFront`, `scoreStripFront`, `tickerFront`, the two pillars, the scoreboard's `leftFace` and `leftFaceTicker` (the right face is hidden from this camera), plus 16 bowl ribbon runs that follow the real physical breaks. Sponsor placards (RYSE, paylocity, Mustang Club / TexasFord) and structure are deliberately left untouched; `geometry.ts` lists them.
 - Calibration: open `/?calibrate`. Every quad gets its own color, name and TL/TR/BR/BL markers with coordinates; screen effects are switched off; buttons set content opacity (0/25/50/100%) and jump the camera to wide / jumbotron / tight / board edges / each bowl.
-- `npm run check` verifies the projection math, simulates thousands of shootout attempts to keep one goal in the 2–5 try range.
+- `npm run check` verifies the projection math, simulates thousands of shootout attempts to keep one goal in the 2–5 try range, validates media paths/content, and checks Meowdoku.
 - Dev only: `/?stage=tickets` (or `lineup`, `highlights`, `iceDive`, `shootout`, `goal`, `final`) jumps straight to a stage.
 
 ## Media
 
-- `public/photos/*.jpg` and `public/photos/museum-game.mp4` are web copies with all metadata (including GPS) stripped.
-- Originals are kept byte-for-byte in `media-source/` (not deployed). The `.MOV` was remuxed (no re-encode) to MP4 for browser compatibility and trimmed to the first 9 s.
-- The clip plays as a muted, inline, control-less highlight slide — only after PLAY.
+- `public/` holds deployment-ready assets only: `photos/*.jpg` are optimized web copies (≤1800 px, JPEG q82, all metadata incl. GPS stripped), `audio/canned-heat-8bit.mp3` is the background track.
+- Originals (HEIC, DNG, full-size JPG/PNG, the `.MOV`) live in `media-source/` and are never referenced at runtime. `media-source/private/` is git-ignored for documents that must never ship.
+- `museum-game.mp4` is re-encoded from `IMG_8664.MOV` **6.0 s → end** (7.0 s, no audio) so it opens right before the payoff; the slide runs 7.6 s and holds the last frame. Framing is separate (`position` in config).
+- Clips play muted, inline, without controls — only after PLAY.
+- `npm run check` fails with the exact path if any configured image, poster, video or audio file is missing, or if a HEIC/DNG/MOV is referenced.
+- Selection is by purpose in `src/config.ts`: `lineup`, `fanCam`, `memories` (highlights, 5–6 slides, paired with `stats`) and `finalPhotos` (collage).
+
+## Audio
+
+`src/audio/AudioDirector.ts` owns one AudioContext with music / ambience / SFX buses. PLAY unlocks it and starts the track; each stage ramps to its own mix (music ducks hard on the goal, warms up on the final note), and Meowdoku ducks everything while open. `src/audio/arenaAudio.ts` holds the synthesized SFX (stings, wipes, puck, post, save, horn + roar + "bing-bong", ticket flutter, meows).
+
+## Easter egg
+
+A tiny cat sits by the far boards on the opening shot. Clicking it opens **Meowdoku** (`src/components/Meowdoku.tsx`, rules in `src/puzzle/meowdoku.ts`): one cat per row, column and region, no touching. It is optional and never affects the birthday flow; `npm run check` verifies the layout has exactly one solution.
 
 ## Keeping the surprise
 
@@ -69,7 +80,7 @@ Most content is in `src/config.ts`:
 - ticket section/row/seats
 - final note
 
-Photos live in `public/photos/` and are referenced with `photo("name.jpg")` in `src/config.ts`. Add more by dropping files there and adding `lineup` / `memories` entries; use `fit: "contain"` for illustrations that must not be cropped. Highlights run one slide per memory.
+Photos live in `public/photos/` and are referenced with `photo("name.jpg")` in `src/config.ts`. Add more by putting an optimized copy there and referencing it from `lineup` / `fanCam` / `memories` / `finalPhotos`; use `fit: "contain"` for illustrations that must not be cropped. Highlights run one slide per memory. Blake's age and jersey number come from `age` / `playerNumber`.
 
 The arena background (`public/arena/aac-interior.jpg`) is a real American Airlines Center interior photo from Wikimedia Commons, credited in-app and licensed CC BY 4.0.
 

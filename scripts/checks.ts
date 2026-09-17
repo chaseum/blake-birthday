@@ -1,4 +1,4 @@
-// Run: npm run check — surface mapping, camera framing, shootout difficulty.
+// Run: npm run check — surface mapping, camera framing, shootout difficulty, content + media, Meowdoku.
 import assert from "node:assert/strict";
 import { ARENA, SURFACES, frameShot, quadTransform } from "../src/arena/geometry.ts";
 
@@ -46,3 +46,49 @@ import { difficultyStats } from "./shootout.sim.ts";
   console.log("shootout ok", stats);
 }
 
+
+// Content: every configured local media path exists and is web-safe; birthday identity is consistent.
+import { existsSync } from "node:fs";
+import { birthday } from "../src/config.ts";
+{
+  const media: string[] = [];
+  const walk = (value: unknown): void => {
+    if (typeof value === "string") {
+      if (/\.(jpe?g|png|webp|gif|avif|heic|dng|mp4|webm|mov|mp3|ogg|wav|m4a)$/i.test(value)) media.push(value);
+    } else if (value && typeof value === "object") Object.values(value).forEach(walk);
+  };
+  walk(birthday);
+  const missing = media.filter((src) => !src.startsWith("http") && !existsSync(new URL(`../public${src}`, import.meta.url)));
+  assert.deepEqual(missing, [], `missing configured media: ${missing.map((m) => `public${m}`).join(", ")}`);
+  const raw = media.filter((src) => /\.(heic|dng|mov)$/i.test(src));
+  assert.deepEqual(raw, [], `not browser-safe: ${raw.join(", ")}`);
+
+  assert.deepEqual(birthday.lineup.map((m) => m.name), ["BLAKE", "CHASE", "THE DUO", "FRITZ"]);
+  assert.equal(birthday.playerNumber, String(birthday.age));
+  assert.equal(birthday.lineup[0].number, birthday.playerNumber, "Blake wears his age");
+  assert.equal(birthday.stats.length, birthday.memories.length, "stats pair with memories");
+  assert.ok(birthday.memories.length >= 5 && birthday.memories.length <= 6, "highlights stay 5–6 slides");
+  assert.ok(!JSON.stringify(birthday.memories).match(/hackathon/i), "no hackathon in highlights");
+  assert.equal(birthday.finalPhotos.length, 4);
+  console.log(`media ok (${new Set(media).size} files)`);
+}
+
+// Meowdoku: exactly one valid placement.
+import { REGIONS, SIZE, checkBoard, emptyBoard } from "../src/puzzle/meowdoku.ts";
+{
+  assert.ok(REGIONS.every((row) => row.length === SIZE));
+  assert.equal(new Set(REGIONS.join("")).size, SIZE, "one region per cat");
+  let solutions = 0;
+  const place = (cols: number[]) => {
+    if (cols.length === SIZE) {
+      const board = emptyBoard();
+      cols.forEach((c, r) => (board[r][c] = "cat"));
+      if (checkBoard(board).solved) solutions += 1;
+      return;
+    }
+    for (let c = 0; c < SIZE; c += 1) if (!cols.includes(c)) place([...cols, c]);
+  };
+  place([]);
+  assert.equal(solutions, 1, `meowdoku has ${solutions} solutions`);
+  console.log("meowdoku ok");
+}

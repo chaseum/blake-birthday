@@ -15,7 +15,7 @@ export type MemoryPhoto = {
   fit?: "cover" | "contain";
   /** Optional muted clip; `src` is its poster frame. */
   video?: string;
-  /** Slide length in ms (highlights), default HIGHLIGHT_BEAT. */
+  /** Slide length in ms (highlights), default HIGHLIGHT_BEAT. Should outlast the clip so the payoff shows. */
   duration?: number;
 };
 
@@ -33,6 +33,9 @@ export type TicketDetails = {
 
 export type BirthdayConfig = {
   birthdayName: string;
+  /** Blake's age this birthday; `playerNumber` is his jersey everywhere he appears as a player. */
+  age: number;
+  playerNumber: string;
   partnerName: string;
   venue: string;
   venueAddress: [string, string];
@@ -52,7 +55,12 @@ export type BirthdayConfig = {
   };
   lineup: LineupMember[];
   fanCam: MemoryPhoto[];
+  /** Highlight slides, in order. */
   memories: MemoryPhoto[];
+  /** Final collage: exactly four, chosen independently of highlight order. */
+  finalPhotos: MemoryPhoto[];
+  /** Background music (looped, mixed by src/audio/AudioDirector.ts). */
+  music: string;
   stats: BroadcastStat[];
   ticket: TicketDetails;
   note: string;

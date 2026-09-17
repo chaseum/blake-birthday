@@ -258,6 +258,51 @@
 
 /* ---------- Ice skaters ---------- */
 
+/* Easter egg: a tiny cat by the far boards. The button is much bigger than the cat. */
+.ice-cat {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  transform: translate(-50%, -80%);
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ice-cat__sprite {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 22px;
+  height: 18px;
+  transform: translateX(-50%);
+  overflow: visible;
+  filter: blur(0.5px) saturate(0.75) brightness(0.9);
+  transition: transform 200ms ease;
+}
+
+.ice-cat:hover .ice-cat__sprite,
+.ice-cat:focus-visible .ice-cat__sprite {
+  transform: translateX(-50%) scale(1.15);
+}
+
+.ice-cat:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+.ice-cat__tail {
+  transform-origin: 14px 15px;
+  animation: catTail 2.6s ease-in-out infinite;
+}
+
+@keyframes catTail {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-22deg); }
+}
+
 .ice-skaters {
   position: absolute;
   inset: 0;
@@ -271,8 +316,48 @@
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   /* Subdued: lit by the same green projection as the photo, slightly soft. */
-  filter: blur(0.45px) saturate(0.8) brightness(0.88);
-  opacity: 0.9;
+  filter: blur(var(--blur, 0.45px)) saturate(0.8) brightness(0.88);
+  opacity: 0.88;
+}
+
+/* Contact shadow on the ice, slightly behind and stretched like the arena lights. */
+.skater__shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  width: 190%;
+  height: 9%;
+  transform: translateX(-42%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 20, 10, 0.55), rgba(0, 20, 10, 0) 70%);
+}
+
+/* Glossy-ice reflection + a faint green bounce under the closest skaters. */
+.skater__reflection {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: 100%;
+  transform: scaleY(-0.55);
+  transform-origin: top;
+  opacity: 0.16;
+  filter: blur(1.2px);
+  -webkit-mask-image: linear-gradient(to top, #000, transparent 70%);
+  mask-image: linear-gradient(to top, #000, transparent 70%);
+}
+
+.skater--near::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6%;
+  width: 150%;
+  height: 16%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(120, 255, 190, 0.22), transparent 70%);
+  mix-blend-mode: screen;
 }
 
 .skater__sprite {
@@ -283,7 +368,7 @@
 }
 
 .skater--featured {
-  filter: blur(0.3px) brightness(1.05);
+  filter: blur(var(--blur, 0.3px)) brightness(1.05);
 }
 
 /* A spotlight that happens to follow one player. */
@@ -317,101 +402,7 @@
 }
 
 .jumbotron-surface--goal .led,
-.arena-world--goal /* Side faces: vertical type, like the photo's own "TEXAS HOCKEY" pillars. */
-.pillar,
-.side-face {
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-
-.pillar {
-  background: linear-gradient(90deg, #1c2320, #2c3531 50%, #1c2320);
-}
-
-.side-face {
-  background: linear-gradient(180deg, #03140c, #00502f 45%, #03140c);
-}
-
-.pillar span,
-.side-face span {
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  color: #e8f3ee;
-  font-family: var(--display);
-  font-weight: 800;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.pillar span {
-  font-size: 40px;
-  letter-spacing: -0.02em;
-}
-
-.side-face span {
-  font-size: 64px;
-  letter-spacing: -0.04em;
-  color: #fff;
-  text-shadow: 0 0 14px rgba(60, 255, 150, 0.8);
-}
-
-/* ---------- Ice skaters ---------- */
-
-.ice-skaters {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.skater {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  animation-name: skaterGlide;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  /* Subdued: lit by the same green projection as the photo, slightly soft. */
-  filter: blur(0.45px) saturate(0.8) brightness(0.88);
-  opacity: 0.9;
-}
-
-.skater__sprite {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.skater--featured {
-  filter: blur(0.3px) brightness(1.05);
-}
-
-/* A spotlight that happens to follow one player. */
-.skater--featured::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -6px;
-  width: 260%;
-  height: 34%;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(235, 255, 245, 0.55), rgba(235, 255, 245, 0) 70%);
-  mix-blend-mode: screen;
-  animation: spotlightBreath 3.2s ease-in-out infinite alternate;
-}
-
-@keyframes skaterGlide {
-  0%, 100% { translate: 0 0; }
-  50% { translate: var(--dx) var(--dy); }
-}
-
-@keyframes spotlightBreath {
-  from { opacity: 0.55; }
-  to { opacity: 1; }
-}
-
-.ring-board {
+.arena-world--goal .ring-board {
   animation: ledStrobe 260ms steps(2, end) infinite;
 }
 

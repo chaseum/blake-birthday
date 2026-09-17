@@ -121,3 +121,154 @@
   50% { color: #fff; }
 }
 
+
+/* ---------- Meowdoku (cat easter egg) ---------- */
+
+.meowdoku {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 8, 6, 0.55);
+  backdrop-filter: blur(3px);
+  animation: meowIn 180ms ease-out both;
+}
+
+.meowdoku__card {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px 18px 18px;
+  border-radius: 18px;
+  background: #fff8ef;
+  color: #3a2f2a;
+  font-family: var(--display);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.meowdoku__card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.meowdoku__logo {
+  width: 1.2em;
+  height: 1.2em;
+  color: #e07b39;
+}
+
+.meowdoku__card p {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.meowdoku__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.meowdoku__grid {
+  display: grid;
+  aspect-ratio: 1;
+  border: 3px solid #3a2f2a;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.meowdoku__grid--solved {
+  box-shadow: 0 0 0 4px #f5b642;
+}
+
+.meowdoku__cell {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-right: 1px solid rgba(58, 47, 42, 0.25);
+  border-bottom: 1px solid rgba(58, 47, 42, 0.25);
+  padding: 0;
+  color: #1d1714;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.meowdoku__cell--edge-r { border-right: 3px solid #3a2f2a; }
+.meowdoku__cell--edge-b { border-bottom: 3px solid #3a2f2a; }
+.meowdoku__cell:disabled { cursor: default; }
+
+.meowdoku__cat {
+  width: 72%;
+  height: 72%;
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.6));
+  animation: catPop 160ms ease-out;
+}
+
+.meowdoku__cell--bad .meowdoku__cat {
+  color: #c0182f;
+  animation: catShake 300ms ease-in-out;
+}
+
+.meowdoku__x {
+  font-size: 1.1rem;
+  opacity: 0.45;
+}
+
+.meowdoku__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.meowdoku__actions button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #3a2f2a;
+  color: #fff8ef;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.meowdoku__actions button:first-child {
+  background: transparent;
+  color: #3a2f2a;
+  box-shadow: inset 0 0 0 2px #3a2f2a;
+}
+
+@keyframes meowIn {
+  from { opacity: 0; }
+}
+
+@keyframes catPop {
+  from { transform: scale(0.4); }
+}
+
+@keyframes catShake {
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(12deg); }
+}

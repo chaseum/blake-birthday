@@ -4,6 +4,12 @@ import type { MemoryPhoto } from "../types";
 
 /** Every board is authored at 960×540 and projected onto the real screen. */
 
+/** Dev-only: a broken media path should be loud, not an empty head. `npm run check` catches config typos. */
+const warnMissing = import.meta.env.DEV
+  ? (e: { currentTarget: HTMLImageElement | HTMLVideoElement }) =>
+      console.warn("[media] failed to load", e.currentTarget.currentSrc || e.currentTarget.getAttribute("src"))
+  : undefined;
+
 function Photo({ memory, className = "" }: { memory: MemoryPhoto; className?: string }) {
   if (memory.video) {
     // Broadcast footage, not a player: muted, inline, no controls. Only mounted after PLAY.
@@ -14,9 +20,10 @@ function Photo({ memory, className = "" }: { memory: MemoryPhoto; className?: st
         poster={memory.src}
         aria-label={memory.alt}
         style={{ objectPosition: memory.position ?? "50% 50%" }}
+        onError={warnMissing}
+        // Pre-cut to the payoff; no loop, so the last frame holds until the slide ends.
         muted
         autoPlay
-        loop
         playsInline
         disablePictureInPicture
         preload="auto"
@@ -29,6 +36,7 @@ function Photo({ memory, className = "" }: { memory: MemoryPhoto; className?: st
       src={memory.src}
       alt={memory.alt}
       style={{ objectPosition: memory.position ?? "50% 50%" }}
+      onError={warnMissing}
     />
   );
 }
@@ -116,6 +124,7 @@ export function LineupBoard({ activeIndex }: { activeIndex: number }) {
                   src={member.image}
                   alt={member.name}
                   style={{ objectPosition: member.imagePosition ?? "50% 50%" }}
+                  onError={warnMissing}
                 />
               </div>
               <div className="lineup-player__body">
