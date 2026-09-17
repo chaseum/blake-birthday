@@ -189,6 +189,10 @@
 .meowdoku__grid {
   display: grid;
   aspect-ratio: 1;
+  /* Drag-to-X owns the gesture: no scrolling, no text selection. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   border: 3px solid #3a2f2a;
   border-radius: 10px;
   overflow: hidden;

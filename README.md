@@ -36,11 +36,17 @@ The arena photo *is* the UI. Nothing is drawn on top as a fake scoreboard: the r
 
 ## Audio
 
-`src/audio/AudioDirector.ts` owns one AudioContext with music / ambience / SFX buses. PLAY unlocks it and starts the track; each stage ramps to its own mix (music ducks hard on the goal, warms up on the final note), and Meowdoku ducks everything while open. `src/audio/arenaAudio.ts` holds the synthesized SFX (stings, wipes, puck, post, save, horn + roar + "bing-bong", ticket flutter, meows).
+`src/audio/AudioDirector.ts` owns one AudioContext with music / ambience / SFX buses plus two stage cues:
+
+- `public/audio/canned-heat-8bit.mp3`: background bed, looped.
+- `public/audio/puck-off.mp3`: hype cue for the lineup intro and lineup (starts at 2.7 s, after the file's silence), then brought back from 30 s for the dive into the shootout. The bed drops out while it plays.
+- `public/audio/goal-horn.mp3`: the real Dallas goal horn, started from 0.7 s the instant the goal goes in. It leads the goal stage (music at 0), carries on under the tickets and fades out for the final note.
+
+Each stage has its own mix (`MIX`), and every change is a gain ramp. Cues start at `CUE_START` and pause once they have faded out. Meowdoku ducks everything except SFX while it is open. The ambience bus carries a crowd murmur and a low building rumble, plus randomly panned one-shots chosen per stage: skate carves, stick taps, puck slides, puck into the boards with a glass rattle, a rare distant whistle and crowd swells. `src/audio/arenaAudio.ts` holds the synthesized SFX (stings, wipes, puck, post, save, crowd roar, ticket flutter, meows).
 
 ## Easter egg
 
-A tiny cat sits by the far boards on the opening shot. Clicking it opens **Meowdoku** (`src/components/Meowdoku.tsx`, rules in `src/puzzle/meowdoku.ts`): one cat per row, column and region, no touching. It is optional and never affects the birthday flow; `npm run check` verifies the layout has exactly one solution.
+A tiny cat sits by the far boards on the opening shot. Clicking it opens **Meowdoku** (`src/components/Meowdoku.tsx`, rules in `src/puzzle/meowdoku.ts`): one cat per row, column and region, no touching. It plays like LinkedIn Queens: tap cycles empty → ✕ → cat → empty, and dragging (mouse or touch) marks empty cells ✕ without ever placing a cat. It is optional and never affects the birthday flow; `npm run check` verifies the layout has exactly one solution.
 
 ## Keeping the surprise
 

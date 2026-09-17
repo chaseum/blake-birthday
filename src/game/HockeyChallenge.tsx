@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { birthday } from "../config";
 import { playGoalCelebration, playPuckHit, playSaveSound } from "../audio/arenaAudio";
-import { setMix } from "../audio/AudioDirector";
+import { playArenaDetail, setMix } from "../audio/AudioDirector";
 import * as art from "./pixelArt";
 import {
   TUNING,
@@ -200,6 +200,7 @@ export function HockeyChallenge({ onWin }: Props) {
       } else if (outcome === "wide") {
         bounce = { vx: (shot.x - shot.fromX) * 0.6, vy: -30 };
         shake = 1;
+        playArenaDetail("boards");
       } else {
         bounce = { vx: (Math.random() - 0.5) * 140, vy: 170 };
         shake = 3;
@@ -210,6 +211,7 @@ export function HockeyChallenge({ onWin }: Props) {
       resultTimer = window.setTimeout(() => {
         phase = "aim";
         resetPuck();
+        playArenaDetail("puckSlide"); // a new puck is fed to the shooter
         setMessage(misses >= 2 ? "GOALIE'S TIRING · AIM HIGH IN A CORNER" : "HOLD TO CHARGE · RELEASE TO SHOOT");
       }, 1300);
     };

@@ -69,13 +69,22 @@ import { birthday } from "../src/config.ts";
   assert.equal(birthday.stats.length, birthday.memories.length, "stats pair with memories");
   assert.ok(birthday.memories.length >= 5 && birthday.memories.length <= 6, "highlights stay 5–6 slides");
   assert.ok(!JSON.stringify(birthday.memories).match(/hackathon/i), "no hackathon in highlights");
-  assert.equal(birthday.finalPhotos.length, 4);
+  assert.equal(birthday.finalPhotos.length, 5, "collage has five slots");
+  const copy = JSON.stringify([birthday.memories, birthday.stats]);
+  assert.ok(!/started talking|first met|tradeee/i.test(copy), "highlights are about Blake, not a relationship timeline");
   console.log(`media ok (${new Set(media).size} files)`);
 }
 
 // Meowdoku: exactly one valid placement.
-import { REGIONS, SIZE, checkBoard, emptyBoard } from "../src/puzzle/meowdoku.ts";
+import { REGIONS, SIZE, checkBoard, emptyBoard, markX, nextCell } from "../src/puzzle/meowdoku.ts";
 {
+  // Queens-style tap cycle, and dragging only ever turns empty cells into X.
+  assert.deepEqual([nextCell("empty"), nextCell("x"), nextCell("cat")], ["x", "cat", "empty"]);
+  const b = emptyBoard();
+  b[0][1] = "cat";
+  assert.equal(markX(b, 0, 0)[0][0], "x");
+  assert.equal(markX(b, 0, 1), b, "drag never touches a cat");
+
   assert.ok(REGIONS.every((row) => row.length === SIZE));
   assert.equal(new Set(REGIONS.join("")).size, SIZE, "one region per cat");
   let solutions = 0;

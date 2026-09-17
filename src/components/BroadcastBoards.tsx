@@ -177,7 +177,7 @@ export function HighlightsBoard({ activeIndex }: { activeIndex: number }) {
 
       <div className="highlight-bug">
         <StarMark size={24} />
-        <span>SEASON HIGHLIGHTS</span>
+        <span>BLAKE'S SEASON</span>
       </div>
 
       <div className="highlight-ticker">

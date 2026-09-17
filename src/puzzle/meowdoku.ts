@@ -24,7 +24,12 @@ export type Board = Cell[][];
 export const emptyBoard = (): Board =>
   Array.from({ length: SIZE }, () => Array.from({ length: SIZE }, (): Cell => "empty"));
 
-export const nextCell = (cell: Cell): Cell => (cell === "empty" ? "cat" : cell === "cat" ? "x" : "empty");
+/** LinkedIn Queens order: tap once to rule a cell out, again for a cat, again to clear. */
+export const nextCell = (cell: Cell): Cell => (cell === "empty" ? "x" : cell === "x" ? "cat" : "empty");
+
+/** Drag marking: empty cells become X; X and cats are left alone. */
+export const markX = (board: Board, r: number, c: number): Board =>
+  board[r][c] !== "empty" ? board : board.map((row, ri) => (ri !== r ? row : row.map((cell, ci) => (ci === c ? "x" : cell))));
 
 /** Keys ("r,c") of cats that break a rule, and whether the board is solved. */
 export function checkBoard(board: Board) {

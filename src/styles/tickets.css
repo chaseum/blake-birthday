@@ -360,6 +360,7 @@
 .final-note__photos img:nth-child(2) { right: 2%; top: 6%; animation-delay: 150ms; }
 .final-note__photos img:nth-child(3) { left: 6%; bottom: 0; animation-delay: 300ms; }
 .final-note__photos img:nth-child(4) { right: 0; bottom: 4%; animation-delay: 450ms; }
+.final-note__photos img:nth-child(5) { left: 31%; top: 28%; width: 36%; height: 42%; animation-delay: 600ms; }
 
 .final-note__copy {
   max-width: 600px;

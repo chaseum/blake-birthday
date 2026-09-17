@@ -106,24 +106,15 @@ export function playSaveSound(kind: "save" | "post") {
   }
 }
 
-/** Goal horn, crowd roar, then the "bing-bong" after the goal. */
+/**
+ * Goal moment. The real Dallas horn (public/audio/goal-horn.mp3) is a stage cue started by
+ * setMix("goal") and leads; this only adds the crowd erupting under it.
+ */
 export function playGoalCelebration() {
   const ctx = audioContext();
   if (!ctx) return;
-  [146.8, 196, 246.9, 293.7].forEach((f, i) => {
-    const osc = tone(ctx, "sawtooth", f, { attack: 0.08, peak: 0.075, length: 2.15 });
-    osc.detune.value = i * 3;
-  });
-  const roar = noiseHit(ctx, "bandpass", 600, 0.5, { attack: 0.4, peak: 0.5, length: 4.2 });
+  const roar = noiseHit(ctx, "bandpass", 600, 0.5, { attack: 0.5, peak: 0.3, length: 4.2 });
   roar.freq.linearRampToValueAtTime(900, roar.t + 1.2);
-  playBingBong(2.4);
-}
-
-export function playBingBong(at = 0) {
-  const ctx = audioContext();
-  if (!ctx) return;
-  tone(ctx, "sine", 1175, { at, attack: 0.005, peak: 0.12, length: 0.9 });
-  tone(ctx, "sine", 880, { at: at + 0.38, attack: 0.005, peak: 0.12, length: 1.3 });
 }
 
 /** Filtered-noise swoosh for camera whips; low intensity doubles as the broadcast wipe. */

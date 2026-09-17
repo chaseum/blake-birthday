@@ -60,8 +60,8 @@ const CAM = {
 const RIBBON: Record<Stage, string> = {
   pregame: "WELCOME TO BIRTHDAY NIGHT · ",
   lineupIntro: "TONIGHT'S STARTING LINEUP · ",
-  lineup: "STARTING LINEUP · TEAM US · ",
-  highlights: "SEASON HIGHLIGHTS · TEAM US · ",
+  lineup: `STARTING LINEUP · BLAKE #${birthday.playerNumber} · `,
+  highlights: `BLAKE'S SEASON HIGHLIGHTS · #${birthday.playerNumber} · `,
   iceDive: "SHOOTOUT · ONE GOAL WINS · ",
   shootout: "SHOOTOUT · ONE GOAL WINS · ",
   goal: "GOAL · ",
@@ -98,7 +98,7 @@ export function ArenaExperience() {
   const flash = () => setFlashKey((key) => key + 1);
 
   const start = () => {
-    startMusic(birthday.music);
+    startMusic(birthday.music, birthday.cues);
     playArenaStart();
     next();
   };
@@ -268,7 +268,7 @@ export function ArenaExperience() {
                 style={{
                   objectPosition: memory.position ?? "50% 50%",
                   objectFit: memory.fit ?? "cover",
-                  transform: `rotate(${[-6, 4, -2, 7][index]}deg)`,
+                  transform: `rotate(${[-6, 4, -2, 7, -3][index]}deg)`,
                 }}
               />
             ))}

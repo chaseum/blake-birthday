@@ -57,10 +57,12 @@ export type BirthdayConfig = {
   fanCam: MemoryPhoto[];
   /** Highlight slides, in order. */
   memories: MemoryPhoto[];
-  /** Final collage: exactly four, chosen independently of highlight order. */
+  /** Final collage (five polaroids), chosen independently of highlight order. */
   finalPhotos: MemoryPhoto[];
   /** Background music (looped, mixed by src/audio/AudioDirector.ts). */
   music: string;
+  /** Stage cues, faded in/out by the AudioDirector: hype song and the real goal horn. */
+  cues: { puckOff: string; goalHorn: string };
   stats: BroadcastStat[];
   ticket: TicketDetails;
   note: string;
