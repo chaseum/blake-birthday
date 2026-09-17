@@ -20,6 +20,8 @@ type ArenaWorldProps = {
   ringText: string;
   ribbonText: string;
   goalMode?: boolean;
+  revealed?: boolean;
+  homeScore?: number;
   showPuck?: boolean;
   speedLines?: boolean;
   flashKey?: number;
@@ -61,6 +63,8 @@ export function ArenaWorld({
   ringText,
   ribbonText,
   goalMode = false,
+  revealed = false,
+  homeScore = 0,
   showPuck = false,
   speedLines = false,
   flashKey = 0,
@@ -108,7 +112,12 @@ export function ArenaWorld({
           </ArenaSurface>
         ))}
 
-        <JumbotronSurface goalMode={goalMode} ribbonText={ribbonText}>
+        <JumbotronSurface
+          goalMode={goalMode}
+          revealed={revealed}
+          homeScore={homeScore}
+          ribbonText={ribbonText}
+        >
           {children}
         </JumbotronSurface>
 

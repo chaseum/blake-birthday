@@ -203,6 +203,15 @@
   animation: bobble 1.4s ease-in-out infinite alternate;
 }
 
+.lineup-player__secret {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .lineup-player__head img {
   width: 100%;
   height: 100%;

@@ -4,6 +4,8 @@ export type LineupMember = {
   role: string;
   image: string;
   imagePosition?: string;
+  /** Clicking this player during the lineup unlocks the bonus puzzle. */
+  secret?: boolean;
 };
 
 export type MemoryPhoto = {
@@ -32,7 +34,9 @@ export type BirthdayConfig = {
   partnerName: string;
   venue: string;
   venueAddress: [string, string];
+  /** Secret until the ticket reveal — never render before the winning goal. */
   opponent: string;
+  opponentAbbr: string;
   homeTeam: string;
   gameDay: string;
   gameDate: string;

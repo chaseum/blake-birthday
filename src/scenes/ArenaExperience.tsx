@@ -12,8 +12,9 @@ import {
   RevealBoard,
 } from "../components/BroadcastBoards";
 import { PhysicalTickets } from "../components/PhysicalTickets";
+import { StarPuzzle } from "../components/StarPuzzle";
 import { HockeyChallenge } from "../game/HockeyChallenge";
-import { playArenaStart, playGoalCelebration, playWhoosh } from "../audio/arenaAudio";
+import { playArenaStart, playWhoosh } from "../audio/arenaAudio";
 
 const STAGES = [
   "pregame",
@@ -51,11 +52,11 @@ const RIBBON: Record<Stage, string> = {
   lineupIntro: "TONIGHT'S STARTING LINEUP · ",
   lineup: "STARTING LINEUP · TEAM US · ",
   highlights: "SEASON HIGHLIGHTS · TEAM US · ",
-  iceDive: "SHOOTOUT · SCORE 2 TO WIN · ",
-  shootout: "SHOOTOUT · SCORE 2 TO WIN · ",
+  iceDive: "SHOOTOUT · ONE GOAL WINS · ",
+  shootout: "SHOOTOUT · ONE GOAL WINS · ",
   goal: "GOAL · ",
-  tickets: `COL @ DAL · ${birthday.gameDay} ${birthday.gameDate} · ${birthday.gameTime} · `,
-  final: `COL @ DAL · ${birthday.gameDay} ${birthday.gameDate} · ${birthday.gameTime} · `,
+  tickets: `${birthday.opponentAbbr} @ DAL · ${birthday.gameDay} ${birthday.gameDate} · ${birthday.gameTime} · `,
+  final: `${birthday.opponentAbbr} @ DAL · ${birthday.gameDay} ${birthday.gameDate} · ${birthday.gameTime} · `,
 };
 
 /** Runs `[delayMs, action]` steps in order; returns a cleanup. */
@@ -68,10 +69,10 @@ function timeline(steps: [number, () => void][]) {
   return () => timers.forEach((timer) => window.clearTimeout(timer));
 }
 
-// Dev only: jump straight to a stage, e.g. /?stage=tickets
-const devStage = import.meta.env.DEV
-  ? STAGES.find((name) => name === new URLSearchParams(window.location.search).get("stage"))
-  : undefined;
+// Dev only: jump straight to a stage, e.g. /?stage=tickets (add &secret to unlock the bonus).
+const devParams = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
+const devStage = STAGES.find((name) => name === devParams?.get("stage"));
+const devSecret = devParams?.has("secret") ?? false;
 
 export function ArenaExperience() {
   const [stage, setStage] = useState<Stage>(devStage ?? "pregame");
@@ -80,6 +81,9 @@ export function ArenaExperience() {
   const [flashKey, setFlashKey] = useState(0);
   const [speedLines, setSpeedLines] = useState(false);
   const [showPuck, setShowPuck] = useState(false);
+  // Optional easter egg: found during the lineup, playable only on the final screen.
+  const [secretFound, setSecretFound] = useState(devSecret);
+  const [puzzleOpen, setPuzzleOpen] = useState(false);
 
   const next = useCallback(() => {
     setStage((current) => STAGES[Math.min(STAGES.indexOf(current) + 1, STAGES.length - 1)]);
@@ -141,7 +145,7 @@ export function ArenaExperience() {
         return;
 
       case "goal":
-        playGoalCelebration();
+        // The horn already sounded in-game at the moment of the goal.
         setCamera(CAM.goalReturn);
         return timeline([[4600, next]]);
 
@@ -156,12 +160,15 @@ export function ArenaExperience() {
 
   let board = <PregameBoard />;
   if (stage === "lineupIntro") board = <LineupIntroBoard />;
-  if (stage === "lineup") board = <LineupBoard activeIndex={beat} />;
+  if (stage === "lineup") board = <LineupBoard activeIndex={beat} onSecret={() => setSecretFound(true)} />;
   if (stage === "highlights") board = <HighlightsBoard activeIndex={beat} />;
   if (stage === "iceDive" || stage === "shootout") board = <IceDiveBoard />;
   if (stage === "goal") board = <GoalBoard />;
   if (stage === "tickets" || stage === "final") board = <RevealBoard />;
 
+  // Opponent is only named after the winning goal, starting with the tickets.
+  const revealed = stage === "tickets" || stage === "final";
+  const scored = STAGES.indexOf(stage) >= STAGES.indexOf("goal");
   const skippable = stage !== "pregame" && stage !== "shootout" && stage !== "final";
 
   return (
@@ -172,6 +179,8 @@ export function ArenaExperience() {
         ringText={`HAPPY BIRTHDAY ${birthday.birthdayName.toUpperCase()} · DALLAS STARS · FEATURED FAN · `}
         ribbonText={RIBBON[stage]}
         goalMode={stage === "goal"}
+        revealed={revealed}
+        homeScore={scored ? 1 : 0}
         showPuck={showPuck || stage === "shootout"}
         speedLines={speedLines}
         flashKey={flashKey}
@@ -183,10 +192,10 @@ export function ArenaExperience() {
       {stage === "pregame" ? (
         <div className="start-cta">
           <button className="start-cta__button" onClick={start}>
-            <span className="start-cta__play">▶</span>
-            START THE PRESENTATION
+            <span className="start-cta__play" aria-hidden="true">▶</span>
+            PLAY
           </button>
-          <small>Sound on · best in fullscreen</small>
+          <small>sound on · best in fullscreen</small>
         </div>
       ) : null}
 
@@ -225,15 +234,30 @@ export function ArenaExperience() {
             <span>ONE MORE THING</span>
             <h1>Happy birthday, {birthday.birthdayName}.</h1>
             <p>{birthday.note}</p>
-            <button className="final-note__replay" onClick={() => setStage("pregame")}>
-              REPLAY PRESENTATION
-            </button>
+            <div className="final-note__actions">
+              <button className="final-note__replay" onClick={() => setStage("pregame")}>
+                REPLAY
+              </button>
+              {secretFound ? (
+                <button className="final-note__bonus" onClick={() => setPuzzleOpen(true)}>
+                  🐾 BONUS PUZZLE
+                </button>
+              ) : null}
+            </div>
           </div>
         </section>
       ) : null}
 
+      {secretFound && stage === "lineup" ? (
+        <div className="secret-toast" role="status">
+          🐾 SECRET FOUND · BONUS UNLOCKS AT THE END
+        </div>
+      ) : null}
+
+      {puzzleOpen ? <StarPuzzle onClose={() => setPuzzleOpen(false)} /> : null}
+
       {skippable ? (
-        <button className="presentation-skip" onClick={next}>
+        <button className="skip-button" onClick={next}>
           SKIP ›
         </button>
       ) : null}

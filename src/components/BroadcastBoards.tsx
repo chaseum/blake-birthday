@@ -71,7 +71,7 @@ export function LineupIntroBoard() {
  * Wii Sports-style lineup: players stand in a row receding to a vanishing
  * point and the camera tracks down the line, one player at a time.
  */
-export function LineupBoard({ activeIndex }: { activeIndex: number }) {
+export function LineupBoard({ activeIndex, onSecret }: { activeIndex: number; onSecret?: () => void }) {
   const active = birthday.lineup[activeIndex];
 
   return (
@@ -99,6 +99,10 @@ export function LineupBoard({ activeIndex }: { activeIndex: number }) {
                   alt={member.name}
                   style={{ objectPosition: member.imagePosition ?? "50% 50%" }}
                 />
+                {member.secret && onSecret ? (
+                  // Hidden easter egg: no visible affordance beyond a pointer cursor.
+                  <button className="lineup-player__secret" onClick={onSecret} aria-label={`Pet ${member.name}`} />
+                ) : null}
               </div>
               <div className="lineup-player__body">
                 <span>{member.number}</span>
@@ -174,7 +178,7 @@ export function IceDiveBoard() {
     <div className="board board--ice-dive">
       <span>FINAL CHALLENGE</span>
       <strong>SHOOTOUT</strong>
-      <small>SCORE 2 TO UNLOCK THE PRESENT</small>
+      <small>ONE GOAL UNLOCKS THE PRESENT</small>
     </div>
   );
 }

@@ -46,6 +46,8 @@
 
 .led {
   background: #020403;
+  /* A photographed LED is never razor sharp or pure white. */
+  filter: blur(0.35px) brightness(0.9) saturate(1.08);
 }
 
 /* Faint pixel grid + panel sheen so content reads as emitted light, not HTML. */
@@ -61,8 +63,69 @@
 }
 
 .jumbo-screen {
-  box-shadow: 0 0 60px 10px rgba(40, 220, 130, 0.25);
-  filter: saturate(1.15) contrast(1.05);
+  filter: blur(0.45px) brightness(0.88) contrast(0.93) saturate(1.1);
+  /* Feather the edges so the content sits inside the real bezel, not on top of it. */
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent, #000 6px, #000 calc(100% - 6px), transparent),
+    linear-gradient(transparent, #000 5px, #000 calc(100% - 5px), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent, #000 6px, #000 calc(100% - 6px), transparent),
+    linear-gradient(transparent, #000 5px, #000 calc(100% - 5px), transparent);
+  mask-composite: intersect;
+}
+
+.jumbo-screen::after {
+  display: none;
+}
+
+/* Multiply layer: green-tinted whites, LED pixel grid, lens vignette. */
+.jumbo-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background:
+    radial-gradient(ellipse at 50% 48%, transparent 52%, rgba(0, 0, 0, 0.42) 100%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0 1px, transparent 1px 3px),
+    #e2f2e7;
+}
+
+/* Sensor noise. */
+.jumbo-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Screen layer: raised LED black level + glare off the panel. */
+.jumbo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 28%, transparent 44%),
+    rgba(18, 52, 36, 0.35);
+}
+
+/* Bloom: same quad, blurred, spilling light past the bezel. */
+.jumbo-bloom {
+  overflow: visible;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  background: rgba(60, 230, 140, 0.45);
+  filter: blur(26px);
+  transition: opacity 300ms ease;
+}
+
+.jumbotron-surface--goal .jumbo-bloom {
+  opacity: 1;
 }
 
 .score-strip {
@@ -93,21 +156,6 @@
   border-radius: 40px;
   margin: 8px 12px;
   line-height: 60px;
-}
-
-.side-strip {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(90deg, #003d25, #006847 50%, #003d25);
-}
-
-.side-strip span {
-  writing-mode: vertical-rl;
-  color: #fff;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 40px;
-  letter-spacing: 0.18em;
 }
 
 .ring-board {

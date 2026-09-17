@@ -2,104 +2,114 @@
   position: fixed;
   inset: 0;
   z-index: 70;
-  background: #dcebea;
+  background: #0d1712;
   animation: gameIris 650ms cubic-bezier(0.7, 0, 0.2, 1) both;
 }
 
-.hockey-game {
+.arcade {
   position: absolute;
   inset: 0;
   color: #fff;
+  font-family: var(--pixel);
 }
 
-.hockey-game__canvas {
+.arcade__canvas {
   display: block;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
   touch-action: none;
-  cursor: grab;
+  cursor: crosshair;
+  outline: none;
 }
 
-.hockey-game__canvas:active {
-  cursor: grabbing;
-}
-
-/* TV scorebug in the corner, not a dashboard. */
-.hockey-game__bug {
+/* Arcade scoreboard: chunky pixel type, hard edges, no glass. */
+.arcade__board {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 10px;
+  left: 50%;
   display: flex;
   align-items: stretch;
+  transform: translateX(-50%);
   pointer-events: none;
-  background: #050906;
-  border-bottom: 4px solid var(--led-green);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-  transform: skewX(-8deg);
+  background: #050806;
+  border: 3px solid #eef3f2;
+  box-shadow: 0 0 0 3px #050806, 6px 6px 0 3px rgba(0, 0, 0, 0.45);
 }
 
-.hockey-game__bug > div {
+.arcade__team,
+.arcade__center {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 6px 14px;
-  transform: skewX(8deg);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
 }
 
-.hockey-game__brand {
-  background: #006847;
+.arcade__team span {
+  font-size: clamp(0.55rem, 1.4vw, 0.8rem);
+  color: #2ee88a;
 }
 
-.hockey-game__bug span {
-  color: #bfe3cf;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+.arcade__team--away span {
+  color: #9aa5a8;
 }
 
-.hockey-game__bug strong {
-  font-family: var(--display);
-  font-size: clamp(1.05rem, 2.2vw, 1.6rem);
-  line-height: 1;
-}
-
-.hockey-game__stat {
-  min-width: 70px;
+.arcade__team b {
+  min-width: 1.4em;
+  padding: 4px 6px;
   text-align: center;
+  background: #111a15;
+  color: #ffd84a;
+  font-size: clamp(0.9rem, 2.4vw, 1.4rem);
+  font-weight: 400;
 }
 
-.hockey-game__stat:nth-child(2) strong {
-  color: var(--led-green);
+.arcade__center {
+  flex-direction: column;
+  gap: 4px;
+  border-inline: 3px solid #eef3f2;
+  font-size: clamp(0.45rem, 1.1vw, 0.62rem);
 }
 
-.hockey-game__message {
+.arcade__center small {
+  color: #ff5a6e;
+  font-size: inherit;
+}
+
+.arcade__message {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  transform: skewX(-8deg);
-  padding: 6px 22px;
+  left: 50%;
+  top: clamp(64px, 11vh, 90px);
+  transform: translateX(-50%);
+  max-width: 92vw;
+  padding: 8px 12px;
   pointer-events: none;
-  white-space: nowrap;
-  background: #050906;
-  color: #fff;
-  font-family: var(--display);
-  font-size: clamp(1.1rem, 3vw, 2rem);
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  text-align: center;
+  background: #050806;
+  border: 3px solid #eef3f2;
+  font-size: clamp(0.6rem, 1.8vw, 1rem);
+  line-height: 1.4;
 }
 
-.hockey-game__hint {
+.arcade__message--goal {
+  color: #050806;
+  background: #ff2a3a;
+  font-size: clamp(1.4rem, 5vw, 3rem);
+  animation: blink 240ms steps(2, end) infinite;
+}
+
+.arcade__hint {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 44px;
+  bottom: 28px;
   margin: 0;
-  padding: 0 16px;
+  padding: 0 12px;
   pointer-events: none;
   text-align: center;
-  color: #26473a;
-  font-size: 0.85rem;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(0.42rem, 1.1vw, 0.6rem);
+  text-shadow: 2px 2px 0 #050806;
 }
 
 @keyframes gameIris {
@@ -107,13 +117,7 @@
   to { clip-path: circle(75% at 50% 50%); filter: brightness(1); }
 }
 
-@media (max-width: 600px) {
-  .hockey-game__message {
-    top: 74px;
-    right: 50%;
-    transform: translateX(50%) skewX(-8deg);
-    white-space: normal;
-    width: 90vw;
-    text-align: center;
-  }
+@keyframes blink {
+  50% { color: #fff; }
 }
+

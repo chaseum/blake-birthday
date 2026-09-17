@@ -8,6 +8,7 @@ export const birthday: BirthdayConfig = {
   venue: "American Airlines Center",
   venueAddress: ["2500 VICTORY AVENUE", "DALLAS, TEXAS 75219"],
   opponent: "Colorado Avalanche",
+  opponentAbbr: "COL",
   homeTeam: "Dallas Stars",
   gameDay: "FRIDAY",
   gameDate: "JAN 22 2027",
@@ -28,11 +29,11 @@ export const birthday: BirthdayConfig = {
     { name: "CHASE", number: "02", role: "SECRET GENERAL MANAGER", image: photo("hackathon.jpg"), imagePosition: "50% 45%" },
     { name: "THE DUO", number: "24", role: "FIRST LINE CHEMISTRY", image: photo("duo.jpg"), imagePosition: "55% 40%" },
     { name: "THE PUP", number: "12", role: "HEAD OF MORALE", image: photo("dog.jpg"), imagePosition: "50% 35%" },
-    { name: "THE CAT", number: "99", role: "ENFORCER (NAPS)", image: photo("cat.jpg"), imagePosition: "50% 45%" },
+    { name: "THE CAT", number: "99", role: "ENFORCER (NAPS)", image: photo("cat.jpg"), imagePosition: "50% 45%", secret: true },
   ],
 
   memories: [
-    { src: photo("navasota.jpg"), alt: "Blake asleep", caption: "Navasota — where the franchise started", position: "50% 35%" },
+    { src: photo("navasota.jpg"), alt: "Blake asleep", caption: "Navasota â€” where the franchise started", position: "50% 35%" },
     { src: photo("hackathon.jpg"), alt: "Hacking at a hackathon", caption: "Two hackathons survived together", position: "50% 55%" },
     { src: photo("duo.jpg"), alt: "Blake and Chase in a crowd", caption: "Still the easiest person to choose", position: "50% 40%" },
     { src: photo("pets.jpg"), alt: "Pixel art of the dog and cat", caption: "Full roster photo", fit: "contain" },
