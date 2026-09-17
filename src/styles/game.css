@@ -2,158 +2,277 @@
   position: fixed;
   inset: 0;
   z-index: 70;
-  display: grid;
-  place-items: center;
-  padding: clamp(12px, 2vw, 28px);
-  background:
-    radial-gradient(circle at 50% 70%, rgba(0,132,61,.11), transparent 42%),
-    rgba(0,0,0,.48);
-  backdrop-filter: blur(1px);
-  animation: gameArrive 620ms cubic-bezier(.16,.74,.2,1) both;
+  background: #0d1712;
+  animation: gameIris 650ms cubic-bezier(0.7, 0, 0.2, 1) both;
 }
 
-.hockey-game {
-  width: min(1040px, 100%);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  gap: 9px;
-  color: white;
+.arcade {
+  position: absolute;
+  inset: 0;
+  color: #fff;
+  font-family: var(--pixel);
 }
 
-.hockey-game__broadcast {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: stretch;
-  min-height: 66px;
-  background: rgba(2,6,4,.94);
-  border-top: 3px solid var(--stars-green);
-  box-shadow: 0 10px 30px rgba(0,0,0,.5);
-}
-
-.hockey-game__brand,
-.hockey-game__score,
-.hockey-game__shots {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 9px 18px;
-}
-
-.hockey-game__score,
-.hockey-game__shots {
-  min-width: 96px;
-  text-align: center;
-  border-left: 1px solid rgba(255,255,255,.12);
-}
-
-.hockey-game__broadcast span {
-  color: #aebbb4;
-  font-size: .68rem;
-  letter-spacing: .14em;
-  font-weight: 800;
-}
-
-.hockey-game__broadcast strong {
-  font-family: var(--display);
-  font-size: clamp(1rem, 2.2vw, 1.65rem);
-  line-height: .95;
-  letter-spacing: .03em;
-}
-
-.hockey-game__score strong {
-  color: var(--skyline);
-}
-
-.hockey-game__frame {
-  position: relative;
-  width: 100%;
-  height: min(65vh, 650px);
-  min-height: 390px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,.36);
-  box-shadow: 0 26px 58px rgba(0,0,0,.58);
-  background: #dcebea;
-}
-
-.hockey-game__canvas {
+.arcade__canvas {
   display: block;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
   touch-action: none;
-  cursor: grab;
+  cursor: crosshair;
+  outline: none;
 }
 
-.hockey-game__canvas:active {
-  cursor: grabbing;
-}
-
-.hockey-game__glass {
+/* Arcade scoreboard: chunky pixel type, hard edges, no glass. */
+.arcade__board {
   position: absolute;
-  inset: 0;
+  top: 10px;
+  left: 50%;
+  display: flex;
+  align-items: stretch;
+  transform: translateX(-50%);
   pointer-events: none;
-  border: 5px solid rgba(209, 236, 236, .22);
-  box-shadow: inset 0 0 70px rgba(255,255,255,.12);
+  background: #050806;
+  border: 3px solid #eef3f2;
+  box-shadow: 0 0 0 3px #050806, 6px 6px 0 3px rgba(0, 0, 0, 0.45);
 }
 
-.hockey-game__glass::after {
-  content: "";
+.arcade__team,
+.arcade__center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.arcade__team span {
+  font-size: clamp(0.55rem, 1.4vw, 0.8rem);
+  color: #2ee88a;
+}
+
+.arcade__team--away span {
+  color: #9aa5a8;
+}
+
+.arcade__team b {
+  min-width: 1.4em;
+  padding: 4px 6px;
+  text-align: center;
+  background: #111a15;
+  color: #ffd84a;
+  font-size: clamp(0.9rem, 2.4vw, 1.4rem);
+  font-weight: 400;
+}
+
+.arcade__center {
+  flex-direction: column;
+  gap: 4px;
+  border-inline: 3px solid #eef3f2;
+  font-size: clamp(0.45rem, 1.1vw, 0.62rem);
+}
+
+.arcade__center small {
+  color: #ff5a6e;
+  font-size: inherit;
+}
+
+.arcade__message {
   position: absolute;
-  inset: 0;
-  opacity: .2;
-  background: linear-gradient(115deg, transparent 0 42%, rgba(255,255,255,.34) 44%, transparent 47% 100%);
-}
-
-.hockey-game__message {
-  min-height: 30px;
-  padding: 4px 10px;
+  left: 50%;
+  top: clamp(64px, 11vh, 90px);
+  transform: translateX(-50%);
+  max-width: 92vw;
+  padding: 8px 12px;
+  pointer-events: none;
   text-align: center;
-  color: white;
-  font-family: var(--display);
-  font-size: clamp(1.2rem, 2.6vw, 2rem);
-  font-weight: 900;
-  letter-spacing: .12em;
-  text-shadow: 0 2px 16px black;
+  background: #050806;
+  border: 3px solid #eef3f2;
+  font-size: clamp(0.6rem, 1.8vw, 1rem);
+  line-height: 1.4;
 }
 
-.hockey-game__hint {
+.arcade__message--goal {
+  color: #050806;
+  background: #ff2a3a;
+  font-size: clamp(1.4rem, 5vw, 3rem);
+  animation: blink 240ms steps(2, end) infinite;
+}
+
+.arcade__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 28px;
   margin: 0;
+  padding: 0 12px;
+  pointer-events: none;
   text-align: center;
-  color: rgba(255,255,255,.66);
-  font-size: .78rem;
-  letter-spacing: .02em;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(0.42rem, 1.1vw, 0.6rem);
+  text-shadow: 2px 2px 0 #050806;
 }
 
-@keyframes gameArrive {
-  from { opacity: 0; transform: scale(1.08); filter: blur(8px); }
-  to { opacity: 1; transform: scale(1); filter: blur(0); }
+@keyframes gameIris {
+  from { clip-path: circle(0% at 50% 50%); filter: brightness(3); }
+  to { clip-path: circle(75% at 50% 50%); filter: brightness(1); }
 }
 
-@media (max-width: 700px) {
-  .game-overlay {
-    padding: 7px;
-  }
+@keyframes blink {
+  50% { color: #fff; }
+}
 
-  .hockey-game__broadcast {
-    min-height: 54px;
-  }
 
-  .hockey-game__brand,
-  .hockey-game__score,
-  .hockey-game__shots {
-    padding: 7px 9px;
-  }
+/* ---------- Meowdoku (cat easter egg) ---------- */
 
-  .hockey-game__score,
-  .hockey-game__shots {
-    min-width: 70px;
-  }
+.meowdoku {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 8, 6, 0.55);
+  backdrop-filter: blur(3px);
+  animation: meowIn 180ms ease-out both;
+}
 
-  .hockey-game__frame {
-    height: 68vh;
-    min-height: 430px;
-  }
+.meowdoku__card {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px 18px 18px;
+  border-radius: 18px;
+  background: #fff8ef;
+  color: #3a2f2a;
+  font-family: var(--display);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
 
-  .hockey-game__hint {
-    font-size: .68rem;
-  }
+.meowdoku__card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.meowdoku__logo {
+  width: 1.2em;
+  height: 1.2em;
+  color: #e07b39;
+}
+
+.meowdoku__card p {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.meowdoku__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.meowdoku__grid {
+  display: grid;
+  aspect-ratio: 1;
+  /* Drag-to-X owns the gesture: no scrolling, no text selection. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 3px solid #3a2f2a;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.meowdoku__grid--solved {
+  box-shadow: 0 0 0 4px #f5b642;
+}
+
+.meowdoku__cell {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-right: 1px solid rgba(58, 47, 42, 0.25);
+  border-bottom: 1px solid rgba(58, 47, 42, 0.25);
+  padding: 0;
+  color: #1d1714;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.meowdoku__cell--edge-r { border-right: 3px solid #3a2f2a; }
+.meowdoku__cell--edge-b { border-bottom: 3px solid #3a2f2a; }
+.meowdoku__cell:disabled { cursor: default; }
+
+.meowdoku__cat {
+  width: 72%;
+  height: 72%;
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.6));
+  animation: catPop 160ms ease-out;
+}
+
+.meowdoku__cell--bad .meowdoku__cat {
+  color: #c0182f;
+  animation: catShake 300ms ease-in-out;
+}
+
+.meowdoku__x {
+  font-size: 1.1rem;
+  opacity: 0.45;
+}
+
+.meowdoku__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.meowdoku__actions button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #3a2f2a;
+  color: #fff8ef;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.meowdoku__actions button:first-child {
+  background: transparent;
+  color: #3a2f2a;
+  box-shadow: inset 0 0 0 2px #3a2f2a;
+}
+
+@keyframes meowIn {
+  from { opacity: 0; }
+}
+
+@keyframes catPop {
+  from { transform: scale(0.4); }
+}
+
+@keyframes catShake {
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(12deg); }
 }

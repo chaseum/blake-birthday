@@ -2,47 +2,16 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  perspective: 1100px;
-  background: #010201;
+  background: #000;
 }
 
-.arena-camera {
+/* The photo at native size; the camera is a single transform on this stage. */
+.arena-stage {
   position: absolute;
-  inset: -3%;
-  overflow: hidden;
-  transform: scale(1);
-  transform-origin: 50% 50%;
-  transition:
-    transform 1.85s cubic-bezier(0.16, 0.72, 0.16, 1),
-    filter 700ms ease;
-  will-change: transform;
-}
-
-.arena-world--wide .arena-camera {
-  transform: scale(1.02) translate3d(0, 0, 0);
-  transform-origin: 50% 48%;
-}
-
-.arena-world--jumbotron .arena-camera {
-  transform: scale(1.54) translate3d(0, 9vh, 0);
-  transform-origin: 55% 29%;
-}
-
-.arena-world--ice .arena-camera {
-  transform: scale(2.32) translate3d(-1.5vw, -13vh, 0);
-  transform-origin: 50% 76%;
-  transition-duration: 2.35s;
-  filter: contrast(1.06) saturate(1.08);
-}
-
-.arena-world--goal .arena-camera {
-  transform: scale(1.42) translate3d(0, 7vh, 0);
-  transform-origin: 55% 29%;
-  transition-duration: 1.05s;
-}
-
-.arena-world--dim .arena-camera {
-  filter: brightness(0.42) saturate(0.72) blur(1.5px);
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transition-property: transform;
 }
 
 .arena-photo {
@@ -50,39 +19,487 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: 50% 50%;
-  transform: scale(1.035);
+  display: block;
+  user-select: none;
+  transition: filter 220ms ease;
 }
 
-.arena-photo__shade {
+.arena-world--moving .arena-photo {
+  filter: blur(5px) brightness(0.92);
+}
+
+.arena-surface {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  transform-origin: 0 0;
+  backface-visibility: hidden;
+}
+
+/* ---------- Calibration mode (?calibrate) ---------- */
+
+.arena-world--calibrate .arena-surface {
+  opacity: var(--calib-opacity, 0.5);
+}
+
+/* Geometry first: no softening effects while measuring. */
+.arena-world--calibrate .led,
+.arena-world--calibrate .jumbo-screen {
+  filter: none !important;
+  animation: none !important;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.arena-world--calibrate .jumbo-glass,
+.arena-world--calibrate .jumbo-bloom,
+.arena-world--calibrate .led::after,
+.arena-world--calibrate .camera-vignette {
+  display: none;
+}
+
+.calibration-guides {
   position: absolute;
   inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: visible;
+  font-family: monospace;
+}
+
+.calibration-controls {
+  position: fixed;
+  z-index: 200;
+  left: 10px;
+  top: 10px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font: 12px/1.2 monospace;
+}
+
+.calibration-controls b {
+  display: inline-block;
+  width: 60px;
+}
+
+.calibration-controls button {
+  margin: 0 3px 0 0;
+  padding: 3px 7px;
+  border: 1px solid #666;
+  background: #222;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.calibration-controls button[aria-pressed="true"] {
+  background: #ff00d4;
+  border-color: #ff00d4;
+}
+
+/* ---------- LED hardware look ---------- */
+
+.led {
+  background: #020403;
+  /* A photographed LED is never razor sharp or pure white. */
+  filter: blur(0.35px) brightness(0.9) saturate(1.08);
+}
+
+/* Faint pixel grid + panel sheen so content reads as emitted light, not HTML. */
+.led::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(1, 6, 4, 0.44), rgba(1, 4, 3, 0.08) 48%, rgba(1, 4, 3, 0.36)),
-    radial-gradient(circle at 55% 30%, transparent 0 18%, rgba(0, 0, 0, 0.18) 54%, rgba(0, 0, 0, 0.62) 100%);
+    linear-gradient(115deg, rgba(255, 255, 255, 0.07), transparent 38%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+}
+
+.jumbo-screen {
+  filter: blur(0.45px) brightness(0.88) contrast(0.93) saturate(1.1);
+  /* Feather the edges so the content sits inside the real bezel, not on top of it. */
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent, #000 3px, #000 calc(100% - 3px), transparent),
+    linear-gradient(transparent, #000 3px, #000 calc(100% - 3px), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent, #000 3px, #000 calc(100% - 3px), transparent),
+    linear-gradient(transparent, #000 3px, #000 calc(100% - 3px), transparent);
+  mask-composite: intersect;
+}
+
+.jumbo-screen::after {
+  display: none;
+}
+
+/* Multiply layer: green-tinted whites, LED pixel grid, lens vignette. */
+.jumbo-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background:
+    radial-gradient(ellipse at 50% 48%, transparent 52%, rgba(0, 0, 0, 0.42) 100%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0 1px, transparent 1px 3px),
+    #e2f2e7;
+}
+
+/* Sensor noise. */
+.jumbo-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Screen layer: raised LED black level + glare off the panel. */
+.jumbo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 28%, transparent 44%),
+    rgba(18, 52, 36, 0.35);
+}
+
+/* Bloom: same quad, blurred, spilling light past the bezel. */
+.jumbo-bloom {
+  overflow: visible;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  background: rgba(60, 230, 140, 0.45);
+  filter: blur(26px);
+  transition: opacity 300ms ease;
+}
+
+.jumbotron-surface--goal .jumbo-bloom {
+  opacity: 1;
+}
+
+.score-strip {
+  display: grid;
+  grid-template-columns: 1.3fr 0.6fr 2fr 0.6fr 1.3fr;
+  align-items: center;
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 44px;
+  text-align: center;
+  background: linear-gradient(#0b1510, #020403);
+}
+
+.score-strip b {
+  color: #ffd84a;
+  font-size: 54px;
+}
+
+.score-strip__team--home {
+  color: var(--led-green);
+}
+
+.score-strip__clock {
+  color: #fff;
+  background: #000;
+  border: 2px solid #2a3a30;
+  border-radius: 40px;
+  margin: 8px 12px;
+  line-height: 60px;
+}
+
+/* Side faces: vertical type, like the photo's own "TEXAS HOCKEY" pillars. */
+.pillar,
+.side-face {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.pillar {
+  background: linear-gradient(90deg, #1c2320, #2c3531 50%, #1c2320);
+}
+
+.side-face {
+  background: linear-gradient(180deg, #03140c, #00502f 45%, #03140c);
+}
+
+.pillar span,
+.side-face span {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  color: #e8f3ee;
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pillar span {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+}
+
+.side-face span {
+  font-size: 64px;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(60, 255, 150, 0.8);
+}
+
+/* ---------- Ice skaters ---------- */
+
+/* Easter egg: a tiny cat by the far boards. The button is much bigger than the cat. */
+.ice-cat {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  transform: translate(-50%, -80%);
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ice-cat__sprite {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 22px;
+  height: 18px;
+  transform: translateX(-50%);
+  overflow: visible;
+  filter: blur(0.5px) saturate(0.75) brightness(0.9);
+  transition: transform 200ms ease;
+}
+
+.ice-cat:hover .ice-cat__sprite,
+.ice-cat:focus-visible .ice-cat__sprite {
+  transform: translateX(-50%) scale(1.15);
+}
+
+.ice-cat:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+.ice-cat__tail {
+  transform-origin: 14px 15px;
+  animation: catTail 2.6s ease-in-out infinite;
+}
+
+@keyframes catTail {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-22deg); }
+}
+
+.ice-skaters {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 
-.arena-crowd-glow {
+.skater {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(to bottom, transparent 0 48%, rgba(0, 132, 61, 0.08) 62%, transparent 76%),
-    radial-gradient(ellipse at 54% 67%, rgba(221, 248, 246, 0.16), transparent 34%);
+  transform: translate(-50%, -100%);
+  animation-name: skaterGlide;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* Subdued: lit by the same green projection as the photo, slightly soft. */
+  filter: blur(var(--blur, 0.45px)) saturate(0.8) brightness(0.88);
+  opacity: 0.88;
+}
+
+/* Contact shadow on the ice, slightly behind and stretched like the arena lights. */
+.skater__shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  width: 190%;
+  height: 9%;
+  transform: translateX(-42%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 20, 10, 0.55), rgba(0, 20, 10, 0) 70%);
+}
+
+/* Glossy-ice reflection + a faint green bounce under the closest skaters. */
+.skater__reflection {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: 100%;
+  transform: scaleY(-0.55);
+  transform-origin: top;
+  opacity: 0.16;
+  filter: blur(1.2px);
+  -webkit-mask-image: linear-gradient(to top, #000, transparent 70%);
+  mask-image: linear-gradient(to top, #000, transparent 70%);
+}
+
+.skater--near::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6%;
+  width: 150%;
+  height: 16%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(120, 255, 190, 0.22), transparent 70%);
   mix-blend-mode: screen;
 }
 
-.ice-spotlight {
+.skater__sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.skater--featured {
+  filter: blur(var(--blur, 0.3px)) brightness(1.05);
+}
+
+/* A spotlight that happens to follow one player. */
+.skater--featured::before {
+  content: "";
   position: absolute;
-  left: 19%;
-  right: 10%;
-  bottom: 3%;
-  height: 50%;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 65%, rgba(235, 255, 251, 0.15), transparent 65%);
+  left: 50%;
+  bottom: -6px;
+  width: 260%;
+  height: 34%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(235, 255, 245, 0.55), rgba(235, 255, 245, 0) 70%);
   mix-blend-mode: screen;
+  animation: spotlightBreath 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes skaterGlide {
+  0%, 100% { translate: 0 0; }
+  50% { translate: var(--dx) var(--dy); }
+}
+
+@keyframes spotlightBreath {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+.ring-board {
+  /* Only a faint halo; bigger glows read as fake strips across the physical gaps. */
+  box-shadow: 0 0 4px rgba(30, 220, 120, 0.25);
+}
+
+.jumbotron-surface--goal .led,
+.arena-world--goal .ring-board {
+  animation: ledStrobe 260ms steps(2, end) infinite;
+}
+
+.arena-goal-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at 57% 40%, rgba(40, 255, 140, 0.4), transparent 60%);
+  mix-blend-mode: screen;
+}
+
+.arena-world--goal .arena-goal-light {
+  animation: goalLight 520ms ease-in-out infinite alternate;
+}
+
+/* ---------- Ribbons ---------- */
+
+.arena-ribbon {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.arena-ribbon--green {
+  background: linear-gradient(#003a22, #00542f 50%, #003a22);
+  color: #fff;
+}
+
+.arena-ribbon--white {
+  background: #020403;
+  color: var(--led-green);
+}
+
+.arena-ribbon--goal {
+  background: var(--led-green);
+  color: #021;
+}
+
+.arena-ribbon__track {
+  width: max-content;
+  display: flex;
+  white-space: nowrap;
+  animation: ribbonScroll 26s linear infinite;
+}
+
+.arena-ribbon--ring .arena-ribbon__track {
+  animation-duration: 52s; /* twice the track length, same speed */
+}
+
+.arena-ribbon__track--reverse {
+  animation-direction: reverse;
+}
+
+.arena-ribbon__track span {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding-right: 1.4em;
+  text-shadow: 0 0 6px currentColor;
+}
+
+.arena-ribbon--ring .arena-ribbon__track span {
+  font-size: 24px;
+}
+
+.arena-ribbon--large .arena-ribbon__track {
+  animation-duration: 16s;
+}
+
+.arena-ribbon--large .arena-ribbon__track span {
+  font-size: 80px;
+  line-height: 1;
+}
+
+/* ---------- Ice + camera FX ---------- */
+
+.ice-puck {
+  position: absolute;
+  width: 14px;
+  height: 6px;
+  margin: -3px 0 0 -7px;
+  border-radius: 50%;
+  background: #050505;
+  box-shadow: 0 1px 0 #333;
+}
+
+.ice-puck::after {
+  content: "";
+  position: absolute;
+  inset: -6px -10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  animation: puckPing 900ms ease-out infinite;
 }
 
 .camera-vignette {
@@ -90,222 +507,35 @@
   inset: 0;
   z-index: 40;
   pointer-events: none;
-  box-shadow: inset 0 0 160px 48px rgba(0, 0, 0, 0.62);
+  box-shadow: inset 0 0 140px 30px rgba(0, 0, 0, 0.5);
 }
 
-.arena-ribbon-wrap {
+.camera-flash {
   position: absolute;
-  left: -4%;
-  width: 108%;
-  z-index: 5;
-  transform: perspective(800px) rotateX(-4deg);
-  overflow: hidden;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: #fff;
+  animation: cameraFlash 380ms ease-out both;
 }
 
-.arena-ribbon-wrap--top {
-  top: 25.5%;
-}
-
-.arena-ribbon-wrap--lower {
-  top: 44.5%;
-}
-
-.arena-ribbon {
-  height: clamp(16px, 2.2vw, 30px);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  box-shadow: 0 0 22px rgba(0, 0, 0, 0.6);
-}
-
-.arena-ribbon--green {
-  background: rgba(0, 132, 61, 0.94);
-  color: white;
-}
-
-.arena-ribbon--white {
-  background: rgba(4, 8, 6, 0.9);
-  color: #baffd5;
-}
-
-.arena-ribbon__track {
-  width: max-content;
-  display: flex;
-  align-items: center;
-  animation: ribbonScroll 24s linear infinite;
-  white-space: nowrap;
-}
-
-.arena-ribbon__track span {
-  font-family: var(--display);
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  font-size: clamp(0.52rem, 0.92vw, 0.8rem);
-  padding-right: 5rem;
-}
-
-.jumbotron-anchor {
-  position: absolute;
-  z-index: 10;
-  top: 13.5%;
-  left: 50%;
-  width: clamp(360px, 32vw, 610px);
-  transform: translateX(-50%);
-  filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.7));
-}
-
-.jumbotron {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1.92 / 1;
-  transform-style: preserve-3d;
-}
-
-.jumbotron__screen {
-  position: absolute;
-  inset: 12% 8% 16%;
-  z-index: 5;
-  overflow: hidden;
-  background: #050806;
-  border: 3px solid #202722;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-    0 0 22px rgba(0, 132, 61, 0.28);
-}
-
-.jumbotron__crown {
-  position: absolute;
-  z-index: 8;
-  top: 0;
-  left: 15%;
-  right: 15%;
-  height: 12%;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(#111712, #050805);
-  border: 1px solid #303831;
-  color: white;
-  font-family: var(--display);
-  font-size: clamp(0.46rem, 0.72vw, 0.72rem);
-  letter-spacing: 0.16em;
-}
-
-.jumbotron__score-strip {
-  position: absolute;
-  z-index: 7;
-  bottom: 3%;
-  left: 10%;
-  right: 10%;
-  height: 13%;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  align-items: center;
-  gap: 8px;
-  padding: 0 5%;
-  background: #050805;
-  color: white;
-  border: 1px solid #303831;
-  font-family: var(--display);
-  font-size: clamp(0.5rem, 0.75vw, 0.78rem);
-  letter-spacing: 0.09em;
-}
-
-.jumbotron__score-strip strong {
-  color: var(--skyline);
-  text-align: center;
-}
-
-.jumbotron__score-strip span:last-child {
-  text-align: right;
-}
-
-.jumbotron__side {
-  position: absolute;
-  top: 16%;
-  width: 11%;
-  height: 58%;
-  z-index: 2;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  background: #006d33;
-  border: 2px solid #263129;
-  color: white;
-  font-family: var(--display);
-  font-weight: 900;
-  font-size: clamp(0.48rem, 0.7vw, 0.7rem);
-  letter-spacing: 0.08em;
-  writing-mode: vertical-rl;
-}
-
-.jumbotron__side--left {
-  left: 0;
-  transform: perspective(350px) rotateY(22deg);
-  transform-origin: right center;
-}
-
-.jumbotron__side--right {
-  right: 0;
-  transform: perspective(350px) rotateY(-22deg);
-  transform-origin: left center;
-}
-
-.jumbotron--goal .jumbotron__side,
-.jumbotron--goal .jumbotron__screen {
-  animation: goalScreenFlash 380ms steps(2, end) infinite;
-}
-
+/* Sports-anime speed lines for the dive onto the puck. */
 .speed-lines {
   position: absolute;
-  inset: -30%;
+  inset: -25%;
   z-index: 55;
   pointer-events: none;
-  opacity: 0;
-  background: repeating-radial-gradient(
-    circle at 50% 65%,
-    transparent 0 4px,
-    rgba(255, 255, 255, 0.06) 5px 6px,
-    transparent 7px 18px
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg 4deg,
+    rgba(255, 255, 255, 0.7) 4.2deg 4.6deg,
+    transparent 5deg 11deg
   );
-  transform: scale(0.7);
-  animation: zoomBurst 2.35s cubic-bezier(0.2, 0.72, 0.18, 1) both;
-}
-
-@keyframes ribbonScroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-@keyframes goalScreenFlash {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(2.25); }
-}
-
-@keyframes zoomBurst {
-  0% { opacity: 0; transform: scale(0.55); }
-  20% { opacity: 0.6; }
-  75% { opacity: 0.1; }
-  100% { opacity: 0; transform: scale(2.4); }
-}
-
-@media (max-width: 760px) {
-  .jumbotron-anchor {
-    width: min(82vw, 470px);
-    top: 18%;
-  }
-
-  .arena-world--jumbotron .arena-camera {
-    transform: scale(1.65) translate3d(0, 7vh, 0);
-  }
-
-  .arena-world--ice .arena-camera {
-    transform: scale(2.5) translate3d(0, -12vh, 0);
-  }
-
-  .arena-ribbon-wrap--top { top: 29%; }
-  .arena-ribbon-wrap--lower { top: 49%; }
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 0 16%, #000 48%);
+  mask-image: radial-gradient(circle at 50% 50%, transparent 0 16%, #000 48%);
+  animation:
+    speedJitter 90ms steps(2) infinite,
+    speedIn 500ms ease-out both;
 }
 
 .arena-credit {
@@ -313,9 +543,10 @@
   z-index: 72;
   left: 10px;
   bottom: 8px;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.56rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.6rem;
   letter-spacing: 0.03em;
+  text-shadow: 0 1px 2px #000;
 }
 
 .arena-credit a {
@@ -324,5 +555,44 @@
 }
 
 .arena-credit a:hover {
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
+}
+
+@keyframes ribbonScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes ledStrobe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.8) saturate(1.3); }
+}
+
+@keyframes goalLight {
+  from { opacity: 0.1; }
+  to { opacity: 1; }
+}
+
+@keyframes puckPing {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes cameraFlash {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
+}
+
+@keyframes speedJitter {
+  to { transform: rotate(3deg) scale(1.03); }
+}
+
+@keyframes speedIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.arena-world--calibrate ~ .start-cta,
+.arena-world--calibrate ~ .skip-button {
+  display: none;
 }
