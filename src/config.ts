@@ -62,7 +62,7 @@ export const birthday: BirthdayConfig = {
       src: photo("museum-game.jpg"),
       video: photo("museum-game.mp4"),
       alt: "Playing a reaction game at the museum",
-      caption: "Museum reaction test — new high score",
+      caption: "Perot reaction time test, you beat Chase!",
       position: "50% 55%",
       duration: 7600,
     },
@@ -76,9 +76,9 @@ export const birthday: BirthdayConfig = {
   stats: [
     { label: "FIRST MET", value: "NAVASOTA", detail: "The inaugural season." },
     { label: "REACTION TEST", value: "65", detail: "Personal best, museum division." },
-    { label: "STARTED TALKING", value: "JULY 9", detail: "Front office never recovered." },
+    { label: "STARTED TALKING", value: "JULY 9", detail: "Unstoppable tradeeee" },
     { label: "SWORD DRILLS", value: "A+", detail: "Scouts were not prepared." },
-    { label: "FIT CHECKS", value: "10/10", detail: "Coordinated. Allegedly by accident." },
+    { label: "FIT CHECKS", value: "10/10", detail: "Outfits matching (always)" },
     { label: "NOW LEVEL", value: String(AGE), detail: "Tonight's featured fan." },
   ],
 
