@@ -14,19 +14,76 @@ export type Rect = { x: number; y: number; w: number; h: number };
 
 export const ARENA = { width: 1920, height: 1440 };
 
-/** Real LED surfaces visible in the photo. */
+/**
+ * Real LED surfaces visible in the photo, measured at 4–10× zoom on the
+ * illuminated pixels only (never the bezel, truss or sponsor placards).
+ *
+ * Deliberately NOT mapped (they are physical, non-LED, or not visible):
+ * - RYSE and paylocity sponsor placards either side of the score strip
+ * - the red paylocity header on the jumbotron's left face
+ * - the "American Airlines Center" crown sign
+ * - the Mustang Club / TexasFord.com sign (x≈285–425, y≈433–442)
+ * - the teal fascia and suite windows between ribbon rows
+ * - the jumbotron's right face (hidden: the camera is left of center)
+ */
 export const SURFACES = {
-  screen: [[865, 409], [1300, 408], [1300, 655], [865, 665]],
-  scoreStrip: [[925, 367], [1256, 367], [1256, 407], [925, 407]],
-  nameRibbon: [[863, 665], [1301, 655], [1301, 703], [863, 716]],
-  // Ring (fascia) LED boards that wrap the bowl.
-  ringUpperLeft: [[257, 377], [826, 371], [826, 384], [257, 390]],
-  ringMidLeft: [[300, 542], [800, 526], [800, 539], [300, 559]],
-  ringLowLeft: [[300, 592], [800, 578], [800, 590], [300, 607]],
-  ringUpperRight: [[1330, 360], [1805, 357], [1805, 372], [1330, 377]],
-  ringMidRight: [[1330, 510], [1920, 530], [1920, 543], [1330, 523]],
-  ringLowRight: [[1330, 559], [1920, 577], [1920, 590], [1330, 571]],
+  // Center-hung scoreboard. Verticals lean inward toward the bottom (camera looks down).
+  mainFront: [[860, 413], [1312, 405], [1298, 654], [867, 666]],
+  scoreStripFront: [[923, 366], [1253, 364], [1253, 405], [923, 409]],
+  tickerFront: [[852, 667], [1300, 655], [1301, 701], [857, 718]],
+  leftPillar: [[843, 414], [859, 414], [866, 665], [850, 665]],
+  rightPillar: [[1313, 405], [1330, 405], [1316, 653], [1300, 653]],
+  leftFace: [[820, 404], [841, 415], [850, 665], [832, 645]],
+  leftFaceTicker: [[840, 656], [852, 667], [857, 718], [845, 708]],
+
+  // Bowl ribbon boards, one quad per physical LED run (curved runs split where the slope changes).
+  ringUpperLeftA: [[0, 405], [174, 401], [174, 409], [0, 414]],
+  ringUpperLeftB: [[176, 397], [258, 397], [258, 406], [176, 407]],
+  ringUpperLeftC: [[258, 376], [815, 371], [815, 385], [258, 393]],
+  ringUpperRightA: [[1331, 360], [1808, 357], [1808, 370], [1331, 374]],
+  ringUpperRightB: [[1790, 418], [1920, 420], [1920, 436], [1790, 432]],
+  ringMidLeftA: [[0, 580], [100, 563], [100, 577], [0, 591]],
+  ringMidLeftB: [[100, 563], [260, 544], [260, 556], [100, 577]],
+  ringMidLeftC: [[260, 544], [550, 531], [550, 541], [260, 556]],
+  ringMidLeftD: [[550, 531], [825, 524], [825, 537], [550, 541]],
+  ringMidRightA: [[1324, 510], [1620, 511], [1620, 525], [1324, 524]],
+  ringMidRightB: [[1620, 511], [1920, 527], [1920, 540], [1620, 525]],
+  ringLowerLeftA: [[115, 614], [258, 597], [258, 608], [115, 625]],
+  ringLowerLeftB: [[258, 595], [550, 579], [550, 594], [258, 612]],
+  ringLowerLeftC: [[550, 579], [828, 573], [828, 590], [550, 594]],
+  ringLowerRightA: [[1321, 564], [1620, 565], [1620, 578], [1321, 576]],
+  ringLowerRightB: [[1620, 565], [1920, 581], [1920, 592], [1620, 578]],
 } satisfies Record<string, Quad>;
+
+export type SurfaceName = keyof typeof SURFACES;
+
+/** Ribbon runs, in bowl order, with the direction their text scrolls. */
+export const RING_RUNS: { name: SurfaceName; reverse?: boolean }[] = [
+  { name: "ringUpperLeftA" },
+  { name: "ringUpperLeftB" },
+  { name: "ringUpperLeftC" },
+  { name: "ringUpperRightA", reverse: true },
+  { name: "ringUpperRightB", reverse: true },
+  { name: "ringMidLeftA" },
+  { name: "ringMidLeftB" },
+  { name: "ringMidLeftC" },
+  { name: "ringMidLeftD" },
+  { name: "ringMidRightA", reverse: true },
+  { name: "ringMidRightB", reverse: true },
+  { name: "ringLowerLeftA" },
+  { name: "ringLowerLeftB" },
+  { name: "ringLowerLeftC" },
+  { name: "ringLowerRightA", reverse: true },
+  { name: "ringLowerRightB", reverse: true },
+];
+
+/** Pixel size for projecting content onto a quad at ~1:1 with the photo (×density). */
+export function quadSize(quad: Quad, density = 2) {
+  const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = quad;
+  const w = (Math.hypot(x1 - x0, y1 - y0) + Math.hypot(x2 - x3, y2 - y3)) / 2;
+  const h = (Math.hypot(x3 - x0, y3 - y0) + Math.hypot(x2 - x1, y2 - y1)) / 2;
+  return { width: Math.round(w * density), height: Math.round(h * density) };
+}
 
 /** Where the camera can point. Each shot is the photo region to frame. */
 export const SHOTS = {

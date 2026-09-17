@@ -5,6 +5,24 @@ import type { MemoryPhoto } from "../types";
 /** Every board is authored at 960×540 and projected onto the real screen. */
 
 function Photo({ memory, className = "" }: { memory: MemoryPhoto; className?: string }) {
+  if (memory.video) {
+    // Broadcast footage, not a player: muted, inline, no controls. Only mounted after PLAY.
+    return (
+      <video
+        className={`board-photo ${className}`}
+        src={memory.video}
+        poster={memory.src}
+        aria-label={memory.alt}
+        style={{ objectPosition: memory.position ?? "50% 50%" }}
+        muted
+        autoPlay
+        loop
+        playsInline
+        disablePictureInPicture
+        preload="auto"
+      />
+    );
+  }
   return (
     <img
       className={`board-photo ${memory.fit === "contain" ? "board-photo--contain" : ""} ${className}`}
@@ -30,12 +48,12 @@ export function PregameBoard() {
   const [index, setIndex] = useState(0);
   useEffect(() => {
     const interval = window.setInterval(
-      () => setIndex((current) => (current + 1) % birthday.memories.length),
+      () => setIndex((current) => (current + 1) % birthday.fanCam.length),
       2600,
     );
     return () => window.clearInterval(interval);
   }, []);
-  const memory = birthday.memories[index];
+  const memory = birthday.fanCam[index];
 
   return (
     <div className="board board--pregame">
@@ -71,7 +89,7 @@ export function LineupIntroBoard() {
  * Wii Sports-style lineup: players stand in a row receding to a vanishing
  * point and the camera tracks down the line, one player at a time.
  */
-export function LineupBoard({ activeIndex, onSecret }: { activeIndex: number; onSecret?: () => void }) {
+export function LineupBoard({ activeIndex }: { activeIndex: number }) {
   const active = birthday.lineup[activeIndex];
 
   return (
@@ -99,10 +117,6 @@ export function LineupBoard({ activeIndex, onSecret }: { activeIndex: number; on
                   alt={member.name}
                   style={{ objectPosition: member.imagePosition ?? "50% 50%" }}
                 />
-                {member.secret && onSecret ? (
-                  // Hidden easter egg: no visible affordance beyond a pointer cursor.
-                  <button className="lineup-player__secret" onClick={onSecret} aria-label={`Pet ${member.name}`} />
-                ) : null}
               </div>
               <div className="lineup-player__body">
                 <span>{member.number}</span>

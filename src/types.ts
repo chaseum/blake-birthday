@@ -4,8 +4,6 @@ export type LineupMember = {
   role: string;
   image: string;
   imagePosition?: string;
-  /** Clicking this player during the lineup unlocks the bonus puzzle. */
-  secret?: boolean;
 };
 
 export type MemoryPhoto = {
@@ -15,6 +13,10 @@ export type MemoryPhoto = {
   position?: string;
   /** "contain" for art/illustrations that must not be cropped. */
   fit?: "cover" | "contain";
+  /** Optional muted clip; `src` is its poster frame. */
+  video?: string;
+  /** Slide length in ms (highlights), default HIGHLIGHT_BEAT. */
+  duration?: number;
 };
 
 export type BroadcastStat = {
@@ -49,6 +51,7 @@ export type BirthdayConfig = {
     licenseUrl: string;
   };
   lineup: LineupMember[];
+  fanCam: MemoryPhoto[];
   memories: MemoryPhoto[];
   stats: BroadcastStat[];
   ticket: TicketDetails;

@@ -23,31 +23,51 @@ export const birthday: BirthdayConfig = {
     licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
   },
 
-  // Add more photos: drop files in public/photos and add entries below.
+  // Photos live in public/photos (web copies, metadata stripped). Originals: media-source/.
+  // Exactly four players, shown Wii Sports-style in this order.
   lineup: [
     { name: "BLAKE", number: "01", role: "BIRTHDAY CAPTAIN", image: photo("navasota.jpg"), imagePosition: "50% 30%" },
     { name: "CHASE", number: "02", role: "SECRET GENERAL MANAGER", image: photo("hackathon.jpg"), imagePosition: "50% 45%" },
-    { name: "THE DUO", number: "24", role: "FIRST LINE CHEMISTRY", image: photo("duo.jpg"), imagePosition: "55% 40%" },
-    { name: "THE PUP", number: "12", role: "HEAD OF MORALE", image: photo("dog.jpg"), imagePosition: "50% 35%" },
-    { name: "THE CAT", number: "99", role: "ENFORCER (NAPS)", image: photo("cat.jpg"), imagePosition: "50% 45%", secret: true },
+    { name: "THE DUO", number: "24", role: "FIRST LINE CHEMISTRY", image: photo("duo-selfie.jpg"), imagePosition: "50% 30%" },
+    { name: "BLAKE'S DOG", number: "12", role: "HEAD OF MORALE", image: photo("dog.jpg"), imagePosition: "50% 35%" },
   ],
 
+  // Rotates on the jumbotron fan cam before PLAY (stills only; no video before PLAY).
+  fanCam: [
+    { src: photo("navasota.jpg"), alt: "Asleep in Navasota", caption: "", position: "50% 35%" },
+    { src: photo("asleep.jpg"), alt: "Asleep on a pillow", caption: "", position: "50% 40%" },
+    { src: photo("lounge.jpg"), alt: "Lounging in a museum chair", caption: "", position: "50% 40%" },
+    { src: photo("portrait.jpg"), alt: "Smiling portrait", caption: "", position: "50% 35%" },
+    { src: photo("train.jpg"), alt: "Riding a train", caption: "", position: "50% 40%" },
+    { src: photo("study.jpg"), alt: "Studying at a laptop", caption: "", position: "50% 35%" },
+    { src: photo("facetime.jpg"), alt: "Video call screenshot", caption: "", position: "50% 35%" },
+    { src: photo("duo.jpg"), alt: "Blake and Chase in a crowd", caption: "", position: "50% 40%" },
+  ],
+
+  // One highlight slide each; `video` clips play muted, only after PLAY.
   memories: [
-    { src: photo("navasota.jpg"), alt: "Blake asleep", caption: "Navasota — where the franchise started", position: "50% 35%" },
+    { src: photo("duo-selfie.jpg"), alt: "Blake and Chase selfie", caption: "Franchise cornerstones", position: "50% 35%" },
+    { src: photo("museum-game.jpg"), video: photo("museum-game.mp4"), alt: "Playing a reaction game at the museum", caption: "Museum reaction test — new high score", position: "50% 28%", duration: 6000 },
+    { src: photo("skyline.jpg"), alt: "Selfie in front of the city skyline", caption: "Downtown road trip", position: "50% 45%" },
+    { src: photo("anime-matsuri.jpg"), alt: "Sword pose at Anime Matsuri", caption: "Anime Matsuri — sword drills", position: "55% 50%" },
+    { src: photo("mirror.jpg"), alt: "Mirror selfie", caption: "Matching fit check", position: "50% 35%" },
+    { src: photo("car-selfie.jpg"), alt: "Car selfie", caption: "Carpool lane", position: "50% 40%" },
+    { src: photo("night-out.jpg"), alt: "Night out selfie", caption: "Night game energy", position: "50% 35%" },
+    { src: photo("scouting-report.jpg"), alt: "Annotated close-up selfie", caption: "Scouting report: annotated", position: "50% 40%" },
     { src: photo("hackathon.jpg"), alt: "Hacking at a hackathon", caption: "Two hackathons survived together", position: "50% 55%" },
-    { src: photo("duo.jpg"), alt: "Blake and Chase in a crowd", caption: "Still the easiest person to choose", position: "50% 40%" },
-    { src: photo("pets.jpg"), alt: "Pixel art of the dog and cat", caption: "Full roster photo", fit: "contain" },
-    { src: photo("dog.jpg"), alt: "Pixel art dog", caption: "Scouting report: very good boy", fit: "contain" },
-    { src: photo("cat.jpg"), alt: "Pixel art cat", caption: "Veteran presence in the locker room", fit: "contain" },
   ],
 
+  // Paired with memories by index.
   stats: [
     { label: "FIRST MET", value: "NAVASOTA", detail: "The inaugural season." },
-    { label: "HACKATHONS", value: "2", detail: "Undefeated in sleep deprivation." },
+    { label: "REACTION TEST", value: "65", detail: "Personal best, museum division." },
     { label: "STARTED TALKING", value: "JULY 9", detail: "Front office never recovered." },
-    { label: "ROSTER SIZE", value: "2+2", detail: "Two humans. Two pets. Zero trades." },
+    { label: "SWORD DRILLS", value: "A+", detail: "Scouts were not prepared." },
+    { label: "FIT CHECKS", value: "10/10", detail: "Coordinated. Allegedly by accident." },
     { label: "CHEMISTRY", value: "100", detail: "Scouts call it statistically suspicious." },
+    { label: "LATE NIGHTS", value: "MANY", detail: "Zero regrets on record." },
     { label: "BIRTHDAY", value: "LVL UP", detail: "Tonight's featured fan." },
+    { label: "HACKATHONS", value: "2", detail: "Undefeated in sleep deprivation." },
   ],
 
   // Replace these three fields once you want the real seat assignment shown.

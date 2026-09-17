@@ -20,9 +20,16 @@ The arena photo *is* the UI. Nothing is drawn on top as a fake scoreboard: the r
 - `ArenaSurface` projects a fixed-size box (e.g. 960×540 for the main screen) onto a quad with a `matrix3d` homography, so board content is authored like a normal 960×540 layout.
 - `ArenaWorld` renders the photo at native size and moves one transform to frame a shot, clamped so the photo edge never shows on any aspect ratio.
 - The main screen is composited like a photographed LED: soft focus, dimmed whites, green cast, pixel grid, noise, glare, vignette, feathered edges and a bloom layer (`.jumbo-screen`, `.jumbo-glass`, `.jumbo-bloom` in `arena.css`).
-- Re-measuring surfaces: open `/?calibrate` to outline every surface.
-- `npm run check` verifies the projection math, simulates thousands of shootout attempts to keep one goal in the 2–5 try range, and confirms the bonus puzzle has exactly one solution.
-- Dev only: `/?stage=tickets` (add `&secret` to pre-unlock the bonus puzzle) (or `lineup`, `highlights`, `iceDive`, `shootout`, `goal`, `final`) jumps straight to a stage.
+- Every visible LED face is its own quad: `mainFront`, `scoreStripFront`, `tickerFront`, the two pillars, the scoreboard's `leftFace` and `leftFaceTicker` (the right face is hidden from this camera), plus 16 bowl ribbon runs that follow the real physical breaks. Sponsor placards (RYSE, paylocity, Mustang Club / TexasFord) and structure are deliberately left untouched; `geometry.ts` lists them.
+- Calibration: open `/?calibrate`. Every quad gets its own color, name and TL/TR/BR/BL markers with coordinates; screen effects are switched off; buttons set content opacity (0/25/50/100%) and jump the camera to wide / jumbotron / tight / board edges / each bowl.
+- `npm run check` verifies the projection math, simulates thousands of shootout attempts to keep one goal in the 2–5 try range.
+- Dev only: `/?stage=tickets` (or `lineup`, `highlights`, `iceDive`, `shootout`, `goal`, `final`) jumps straight to a stage.
+
+## Media
+
+- `public/photos/*.jpg` and `public/photos/museum-game.mp4` are web copies with all metadata (including GPS) stripped.
+- Originals are kept byte-for-byte in `media-source/` (not deployed). The `.MOV` was remuxed (no re-encode) to MP4 for browser compatibility and trimmed to the first 9 s.
+- The clip plays as a muted, inline, control-less highlight slide — only after PLAY.
 
 ## Keeping the surprise
 
@@ -33,10 +40,6 @@ The arena photo *is* the UI. Nothing is drawn on top as a fake scoreboard: the r
 - `src/game/shootout.ts` — rules, goalie AI (reaction delay, momentum, guess error, dive poses) and all tuning numbers. Each miss makes the goalie slower and worse at guessing.
 - `src/game/pixelArt.ts` — sprite drawing (goalie, shooter, puck, net, crease, rink, goal lamp, crowd).
 - `src/game/HockeyChallenge.tsx` — loop, input (mouse aims directly; touch drags the reticle; arrows + space work too), puck trail, screen shake, slow-motion winning shot.
-
-## Bonus puzzle (optional)
-
-Clicking the cat during the lineup unlocks a Stars-themed placement puzzle (one ★ per row, column and color; stars can't touch) on the final screen. It never interrupts the main flow. Edit `REGIONS` in `src/puzzle/starPuzzle.ts` to change it; `npm run check` fails if the layout stops having exactly one solution. Which lineup player is the trigger is set with `secret: true` in `src/config.ts`.
 
 If you swap the arena photo, the quads and shots in `geometry.ts` must be re-measured for the new image.
 

@@ -1,8 +1,18 @@
-// Run: npm run check — surface mapping, camera framing, shootout difficulty, bonus puzzle.
+// Run: npm run check — surface mapping, camera framing, shootout difficulty.
 import assert from "node:assert/strict";
 import { ARENA, SURFACES, frameShot, quadTransform } from "../src/arena/geometry.ts";
 
-const q = SURFACES.screen;
+// Every quad is convex, clockwise and inside the photo.
+for (const [name, quad] of Object.entries(SURFACES)) {
+  quad.forEach(([x, y]) => assert.ok(x >= 0 && x <= ARENA.width && y >= 0 && y <= ARENA.height, `${name} outside photo`));
+  quad.forEach((p, i) => {
+    const [a, b, c] = [p, quad[(i + 1) % 4], quad[(i + 2) % 4]];
+    const cross = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    assert.ok(cross > 0, `${name} not convex/clockwise at corner ${i}`);
+  });
+}
+
+const q = SURFACES.mainFront;
 const m = quadTransform(960, 540, q).slice(9, -1).split(",").map(Number);
 const project = (X: number, Y: number) => {
   const w = m[3] * X + m[7] * Y + m[15];
@@ -36,21 +46,3 @@ import { difficultyStats } from "./shootout.sim.ts";
   console.log("shootout ok", stats);
 }
 
-// Bonus puzzle: exactly one valid placement.
-import { REGIONS, SIZE, checkBoard, emptyBoard } from "../src/puzzle/starPuzzle.ts";
-{
-  const solutions: number[][] = [];
-  const perm = (cols: number[]) => {
-    if (cols.length === SIZE) {
-      const board = emptyBoard();
-      cols.forEach((c, r) => (board[r][c] = "star"));
-      if (checkBoard(board).solved) solutions.push(cols);
-      return;
-    }
-    for (let c = 0; c < SIZE; c += 1) if (!cols.includes(c)) perm([...cols, c]);
-  };
-  perm([]);
-  assert.equal(REGIONS.every((row) => row.length === SIZE), true);
-  assert.equal(solutions.length, 1, `puzzle solutions: ${JSON.stringify(solutions)}`);
-  console.log("puzzle ok");
-}

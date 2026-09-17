@@ -12,7 +12,6 @@ import {
   RevealBoard,
 } from "../components/BroadcastBoards";
 import { PhysicalTickets } from "../components/PhysicalTickets";
-import { StarPuzzle } from "../components/StarPuzzle";
 import { HockeyChallenge } from "../game/HockeyChallenge";
 import { playArenaStart, playWhoosh } from "../audio/arenaAudio";
 
@@ -69,10 +68,9 @@ function timeline(steps: [number, () => void][]) {
   return () => timers.forEach((timer) => window.clearTimeout(timer));
 }
 
-// Dev only: jump straight to a stage, e.g. /?stage=tickets (add &secret to unlock the bonus).
+// Dev only: jump straight to a stage, e.g. /?stage=tickets
 const devParams = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
 const devStage = STAGES.find((name) => name === devParams?.get("stage"));
-const devSecret = devParams?.has("secret") ?? false;
 
 export function ArenaExperience() {
   const [stage, setStage] = useState<Stage>(devStage ?? "pregame");
@@ -81,9 +79,6 @@ export function ArenaExperience() {
   const [flashKey, setFlashKey] = useState(0);
   const [speedLines, setSpeedLines] = useState(false);
   const [showPuck, setShowPuck] = useState(false);
-  // Optional easter egg: found during the lineup, playable only on the final screen.
-  const [secretFound, setSecretFound] = useState(devSecret);
-  const [puzzleOpen, setPuzzleOpen] = useState(false);
 
   const next = useCallback(() => {
     setStage((current) => STAGES[Math.min(STAGES.indexOf(current) + 1, STAGES.length - 1)]);
@@ -121,11 +116,13 @@ export function ArenaExperience() {
 
       case "highlights": {
         setCamera(CAM.jumbotron);
-        const beats = birthday.memories.length;
-        return timeline([
-          ...Array.from({ length: beats - 1 }, (): [number, () => void] => [HIGHLIGHT_BEAT, advanceBeat]),
-          [HIGHLIGHT_BEAT, next],
-        ]);
+        const slides = birthday.memories;
+        return timeline(
+          slides.map((slide, i): [number, () => void] => [
+            slide.duration ?? HIGHLIGHT_BEAT,
+            i === slides.length - 1 ? next : advanceBeat,
+          ]),
+        );
       }
 
       case "iceDive":
@@ -160,7 +157,7 @@ export function ArenaExperience() {
 
   let board = <PregameBoard />;
   if (stage === "lineupIntro") board = <LineupIntroBoard />;
-  if (stage === "lineup") board = <LineupBoard activeIndex={beat} onSecret={() => setSecretFound(true)} />;
+  if (stage === "lineup") board = <LineupBoard activeIndex={beat} />;
   if (stage === "highlights") board = <HighlightsBoard activeIndex={beat} />;
   if (stage === "iceDive" || stage === "shootout") board = <IceDiveBoard />;
   if (stage === "goal") board = <GoalBoard />;
@@ -182,6 +179,7 @@ export function ArenaExperience() {
         revealed={revealed}
         homeScore={scored ? 1 : 0}
         showPuck={showPuck || stage === "shootout"}
+        showSkaters={stage === "pregame" || stage === "lineupIntro"}
         speedLines={speedLines}
         flashKey={flashKey}
         credit={birthday.arenaCredit}
@@ -234,27 +232,12 @@ export function ArenaExperience() {
             <span>ONE MORE THING</span>
             <h1>Happy birthday, {birthday.birthdayName}.</h1>
             <p>{birthday.note}</p>
-            <div className="final-note__actions">
-              <button className="final-note__replay" onClick={() => setStage("pregame")}>
-                REPLAY
-              </button>
-              {secretFound ? (
-                <button className="final-note__bonus" onClick={() => setPuzzleOpen(true)}>
-                  🐾 BONUS PUZZLE
-                </button>
-              ) : null}
-            </div>
+            <button className="final-note__replay" onClick={() => setStage("pregame")}>
+              REPLAY
+            </button>
           </div>
         </section>
       ) : null}
-
-      {secretFound && stage === "lineup" ? (
-        <div className="secret-toast" role="status">
-          🐾 SECRET FOUND · BONUS UNLOCKS AT THE END
-        </div>
-      ) : null}
-
-      {puzzleOpen ? <StarPuzzle onClose={() => setPuzzleOpen(false)} /> : null}
 
       {skippable ? (
         <button className="skip-button" onClick={next}>

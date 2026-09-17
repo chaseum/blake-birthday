@@ -37,9 +37,68 @@
   backface-visibility: hidden;
 }
 
+/* ---------- Calibration mode (?calibrate) ---------- */
+
 .arena-world--calibrate .arena-surface {
-  outline: 3px solid #ff00d4;
-  opacity: 0.55;
+  opacity: var(--calib-opacity, 0.5);
+}
+
+/* Geometry first: no softening effects while measuring. */
+.arena-world--calibrate .led,
+.arena-world--calibrate .jumbo-screen {
+  filter: none !important;
+  animation: none !important;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.arena-world--calibrate .jumbo-glass,
+.arena-world--calibrate .jumbo-bloom,
+.arena-world--calibrate .led::after,
+.arena-world--calibrate .camera-vignette {
+  display: none;
+}
+
+.calibration-guides {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: visible;
+  font-family: monospace;
+}
+
+.calibration-controls {
+  position: fixed;
+  z-index: 200;
+  left: 10px;
+  top: 10px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font: 12px/1.2 monospace;
+}
+
+.calibration-controls b {
+  display: inline-block;
+  width: 60px;
+}
+
+.calibration-controls button {
+  margin: 0 3px 0 0;
+  padding: 3px 7px;
+  border: 1px solid #666;
+  background: #222;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.calibration-controls button[aria-pressed="true"] {
+  background: #ff00d4;
+  border-color: #ff00d4;
 }
 
 /* ---------- LED hardware look ---------- */
@@ -66,12 +125,12 @@
   filter: blur(0.45px) brightness(0.88) contrast(0.93) saturate(1.1);
   /* Feather the edges so the content sits inside the real bezel, not on top of it. */
   -webkit-mask-image:
-    linear-gradient(90deg, transparent, #000 6px, #000 calc(100% - 6px), transparent),
-    linear-gradient(transparent, #000 5px, #000 calc(100% - 5px), transparent);
+    linear-gradient(90deg, transparent, #000 3px, #000 calc(100% - 3px), transparent),
+    linear-gradient(transparent, #000 3px, #000 calc(100% - 3px), transparent);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(90deg, transparent, #000 6px, #000 calc(100% - 6px), transparent),
-    linear-gradient(transparent, #000 5px, #000 calc(100% - 5px), transparent);
+    linear-gradient(90deg, transparent, #000 3px, #000 calc(100% - 3px), transparent),
+    linear-gradient(transparent, #000 3px, #000 calc(100% - 3px), transparent);
   mask-composite: intersect;
 }
 
@@ -158,12 +217,201 @@
   line-height: 60px;
 }
 
+/* Side faces: vertical type, like the photo's own "TEXAS HOCKEY" pillars. */
+.pillar,
+.side-face {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.pillar {
+  background: linear-gradient(90deg, #1c2320, #2c3531 50%, #1c2320);
+}
+
+.side-face {
+  background: linear-gradient(180deg, #03140c, #00502f 45%, #03140c);
+}
+
+.pillar span,
+.side-face span {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  color: #e8f3ee;
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pillar span {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+}
+
+.side-face span {
+  font-size: 64px;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(60, 255, 150, 0.8);
+}
+
+/* ---------- Ice skaters ---------- */
+
+.ice-skaters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skater {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  animation-name: skaterGlide;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* Subdued: lit by the same green projection as the photo, slightly soft. */
+  filter: blur(0.45px) saturate(0.8) brightness(0.88);
+  opacity: 0.9;
+}
+
+.skater__sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.skater--featured {
+  filter: blur(0.3px) brightness(1.05);
+}
+
+/* A spotlight that happens to follow one player. */
+.skater--featured::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 260%;
+  height: 34%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(235, 255, 245, 0.55), rgba(235, 255, 245, 0) 70%);
+  mix-blend-mode: screen;
+  animation: spotlightBreath 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes skaterGlide {
+  0%, 100% { translate: 0 0; }
+  50% { translate: var(--dx) var(--dy); }
+}
+
+@keyframes spotlightBreath {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
 .ring-board {
-  box-shadow: 0 0 18px rgba(30, 220, 120, 0.35);
+  /* Only a faint halo; bigger glows read as fake strips across the physical gaps. */
+  box-shadow: 0 0 4px rgba(30, 220, 120, 0.25);
 }
 
 .jumbotron-surface--goal .led,
-.arena-world--goal .ring-board {
+.arena-world--goal /* Side faces: vertical type, like the photo's own "TEXAS HOCKEY" pillars. */
+.pillar,
+.side-face {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.pillar {
+  background: linear-gradient(90deg, #1c2320, #2c3531 50%, #1c2320);
+}
+
+.side-face {
+  background: linear-gradient(180deg, #03140c, #00502f 45%, #03140c);
+}
+
+.pillar span,
+.side-face span {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  color: #e8f3ee;
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pillar span {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+}
+
+.side-face span {
+  font-size: 64px;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(60, 255, 150, 0.8);
+}
+
+/* ---------- Ice skaters ---------- */
+
+.ice-skaters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skater {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  animation-name: skaterGlide;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* Subdued: lit by the same green projection as the photo, slightly soft. */
+  filter: blur(0.45px) saturate(0.8) brightness(0.88);
+  opacity: 0.9;
+}
+
+.skater__sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.skater--featured {
+  filter: blur(0.3px) brightness(1.05);
+}
+
+/* A spotlight that happens to follow one player. */
+.skater--featured::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 260%;
+  height: 34%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(235, 255, 245, 0.55), rgba(235, 255, 245, 0) 70%);
+  mix-blend-mode: screen;
+  animation: spotlightBreath 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes skaterGlide {
+  0%, 100% { translate: 0 0; }
+  50% { translate: var(--dx) var(--dy); }
+}
+
+@keyframes spotlightBreath {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+.ring-board {
   animation: ledStrobe 260ms steps(2, end) infinite;
 }
 
@@ -211,6 +459,10 @@
   display: flex;
   white-space: nowrap;
   animation: ribbonScroll 26s linear infinite;
+}
+
+.arena-ribbon--ring .arena-ribbon__track {
+  animation-duration: 52s; /* twice the track length, same speed */
 }
 
 .arena-ribbon__track--reverse {
@@ -347,4 +599,9 @@
 @keyframes speedIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.arena-world--calibrate ~ .start-cta,
+.arena-world--calibrate ~ .skip-button {
+  display: none;
 }

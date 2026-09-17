@@ -6,7 +6,6 @@ import "./styles/arena.css";
 import "./styles/broadcast.css";
 import "./styles/game.css";
 import "./styles/tickets.css";
-import "./styles/puzzle.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
