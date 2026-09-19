@@ -65,7 +65,7 @@ export function PregameBoard() {
         <em>{birthday.birthdayName.toUpperCase()}</em>
       </div>
       <StarsLogo className="pregame-stars-logo" decorative />
-      <div className="pregame-victor" aria-label="Victor E. Green mascot cameo">
+      <div className="pregame-victor" role="img" aria-label="Victor E. Green mascot cameo">
         <VictorBadge decorative />
         <span>VICTOR E. GREEN</span>
       </div>
