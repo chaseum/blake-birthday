@@ -6,9 +6,10 @@
   background: #030504;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --stars-green: #006847;
-  --stars-silver: #8f8f8c;
-  --led-green: #2ee88a;
+  --stars-green: #00843d;
+  --stars-silver: #a7a9ac;
+  --stars-skyline: #00fa00;
+  --led-green: var(--stars-skyline);
   --ink: #030504;
   --pixel: "Press Start 2P", monospace;
   --display: "Industry Inc", "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -98,14 +99,14 @@ button {
   white-space: nowrap;
   cursor: pointer;
   transform: skewX(-8deg);
-  box-shadow: 0 0 0 4px rgba(46, 232, 138, 0.5), 0 14px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 4px rgba(0, 250, 0, 0.35), 0 14px 40px rgba(0, 0, 0, 0.6);
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 .start-cta__button:hover,
 .start-cta__button:focus-visible {
   transform: skewX(-8deg) scale(1.04);
-  box-shadow: 0 0 0 6px rgba(46, 232, 138, 0.8), 0 14px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 6px rgba(0, 250, 0, 0.62), 0 14px 40px rgba(0, 0, 0, 0.6);
 }
 
 .start-cta__play {
@@ -113,7 +114,7 @@ button {
   place-items: center;
   width: 2em;
   height: 2em;
-  background: #006847;
+  background: var(--stars-green);
   color: #fff;
   font-size: 0.8em;
 }
