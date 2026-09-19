@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { birthday } from "../config";
 import type { MemoryPhoto } from "../types";
+import { StarsLogo, VictorBadge } from "./StarsBrand";
 
 /** Every board is authored at 960×540 and projected onto the real screen. */
 
@@ -41,17 +42,6 @@ function Photo({ memory, className = "" }: { memory: MemoryPhoto; className?: st
   );
 }
 
-function StarMark({ size = 40 }: { size?: number }) {
-  return (
-    <svg className="star-mark" width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
-      <polygon
-        points="50,4 61,38 97,38 68,59 79,94 50,72 21,94 32,59 3,38 39,38"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
 export function PregameBoard() {
   const [index, setIndex] = useState(0);
   useEffect(() => {
@@ -74,7 +64,11 @@ export function PregameBoard() {
         <strong>BIRTHDAY NIGHT</strong>
         <em>{birthday.birthdayName.toUpperCase()}</em>
       </div>
-      <StarMark size={64} />
+      <StarsLogo className="pregame-stars-logo" decorative />
+      <div className="pregame-victor" aria-label="Victor E. Green mascot cameo">
+        <VictorBadge decorative />
+        <span>VICTOR E. GREEN</span>
+      </div>
     </div>
   );
 }
@@ -86,6 +80,7 @@ export function LineupIntroBoard() {
       <div className="bumper-bar bumper-bar--2" />
       <div className="bumper-bar bumper-bar--3" />
       <div className="bumper-copy">
+        <StarsLogo className="bumper-stars-logo" decorative />
         <span>TONIGHT'S</span>
         <strong>STARTING LINEUP</strong>
       </div>
@@ -136,7 +131,7 @@ export function LineupBoard({ activeIndex }: { activeIndex: number }) {
       </div>
 
       <div className="lineup-bug">
-        <StarMark size={26} />
+        <StarsLogo className="lineup-bug__logo" decorative />
         STARTING LINEUP
         <b>
           {activeIndex + 1}/{birthday.lineup.length}
@@ -176,7 +171,7 @@ export function HighlightsBoard({ activeIndex }: { activeIndex: number }) {
       </div>
 
       <div className="highlight-bug">
-        <StarMark size={24} />
+        <StarsLogo className="highlight-bug__logo" decorative />
         <span>BLAKE'S SEASON</span>
       </div>
 
@@ -210,6 +205,7 @@ export function GoalBoard() {
   return (
     <div className="board board--goal">
       <div className="goal-rays" />
+      <StarsLogo className="goal-logo" decorative />
       <strong>
         {"GOAL".split("").map((letter, index) => (
           <span key={index} style={{ animationDelay: `${index * 70}ms` }}>
@@ -232,7 +228,10 @@ export function RevealBoard() {
       <div className="reveal-matchup">
         <span>{birthday.opponent.toUpperCase()}</span>
         <b>@</b>
-        <span>{birthday.homeTeam.toUpperCase()}</span>
+        <span className="reveal-home">
+          <StarsLogo className="reveal-home__logo" decorative />
+          {birthday.homeTeam.toUpperCase()}
+        </span>
       </div>
     </div>
   );
