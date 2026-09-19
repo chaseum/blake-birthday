@@ -585,7 +585,7 @@
 }
 
 @keyframes goalBg {
-  0%, 100% { background-color: var(--stars-green); }
+  0%, 100% { background-color: var(--stars-skyline); }
   50% { background-color: var(--stars-green); }
 }
 
