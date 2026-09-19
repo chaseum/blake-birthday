@@ -15,7 +15,7 @@ export type Rect = { x: number; y: number; w: number; h: number };
 export const ARENA = { width: 1920, height: 1440 };
 
 /**
- * Real LED surfaces visible in the photo, measured at 4–10× zoom on the
+ * Center-hung scoreboard faces, measured at 4–10× zoom on the
  * illuminated pixels only (never the bezel, truss or sponsor placards).
  *
  * Deliberately NOT mapped (they are physical, non-LED, or not visible):
@@ -26,7 +26,7 @@ export const ARENA = { width: 1920, height: 1440 };
  * - the teal fascia and suite windows between ribbon rows
  * - the jumbotron's right face (hidden: the camera is left of center)
  */
-export const SURFACES = {
+const JUMBO_SURFACES = {
   // Center-hung scoreboard. Verticals lean inward toward the bottom (camera looks down).
   mainFront: [[860, 413], [1312, 405], [1298, 654], [867, 666]],
   scoreStripFront: [[923, 366], [1253, 364], [1253, 405], [923, 409]],
@@ -35,47 +35,64 @@ export const SURFACES = {
   rightPillar: [[1313, 405], [1330, 405], [1316, 653], [1300, 653]],
   leftFace: [[820, 404], [841, 415], [850, 665], [832, 645]],
   leftFaceTicker: [[840, 656], [852, 667], [857, 718], [845, 708]],
-
-  // Bowl ribbon boards, one quad per physical LED run (curved runs split where the slope changes).
-  ringUpperLeftA: [[0, 405], [174, 401], [174, 409], [0, 414]],
-  ringUpperLeftB: [[176, 397], [258, 397], [258, 406], [176, 407]],
-  ringUpperLeftC: [[258, 376], [815, 371], [815, 385], [258, 393]],
-  ringUpperRightA: [[1331, 360], [1808, 357], [1808, 370], [1331, 374]],
-  ringUpperRightB: [[1790, 418], [1920, 420], [1920, 436], [1790, 432]],
-  ringMidLeftA: [[0, 580], [100, 563], [100, 577], [0, 591]],
-  ringMidLeftB: [[100, 563], [260, 544], [260, 556], [100, 577]],
-  ringMidLeftC: [[260, 544], [550, 531], [550, 541], [260, 556]],
-  ringMidLeftD: [[550, 531], [825, 524], [825, 537], [550, 541]],
-  ringMidRightA: [[1324, 510], [1620, 511], [1620, 525], [1324, 524]],
-  ringMidRightB: [[1620, 511], [1920, 527], [1920, 540], [1620, 525]],
-  ringLowerLeftA: [[115, 614], [258, 597], [258, 608], [115, 625]],
-  ringLowerLeftB: [[258, 595], [550, 579], [550, 594], [258, 612]],
-  ringLowerLeftC: [[550, 579], [828, 573], [828, 590], [550, 594]],
-  ringLowerRightA: [[1321, 564], [1620, 565], [1620, 578], [1321, 576]],
-  ringLowerRightB: [[1620, 565], [1920, 581], [1920, 592], [1620, 578]],
 } satisfies Record<string, Quad>;
 
-export type SurfaceName = keyof typeof SURFACES;
+/**
+ * Bowl ribbon boards.
+ *
+ * A run is a polyline of control points measured ON the illuminated strip:
+ * `[x, yTop, yBottom]` in photo pixels. Segments are generated between
+ * consecutive points, so neighbours share their corners exactly — no seams, no
+ * height steps, and the board follows the photo's curve instead of one long
+ * straight chord. Re-measure with `?calibrate`: every point sits on a real LED
+ * edge (the upper/left runs were read off the lit "JOHNSTON"/graphics frames).
+ *
+ * The six runs below are six separate physical boards, so the gaps between them
+ * are real. The bands at x<256/y≈405 and x>1788/y≈420 are deliberately NOT
+ * mapped: they are lit concrete walkway edges above the suites (no LED content
+ * anywhere in the photo), and a ribbon there reads as an overlay on the fascia.
+ */
+const RIBBON_RUNS = [
+  // Far upper deck, left of the scoreboard. Lit at x≈640–770 ("HAPPY"/graphics frame).
+  { name: "ringUpperLeft", points: [[256, 381, 393], [400, 377, 390], [550, 375, 388], [680, 372, 387], [830, 371, 386]] },
+  // Far upper deck, right of the scoreboard. Lit at x≈1330–1430.
+  { name: "ringUpperRight", reverse: true, points: [[1325, 361, 376], [1450, 360, 373], [1600, 359, 371], [1700, 358, 370], [1805, 357, 369]] },
+  // Club-level ring, left of the scoreboard. Lit at x≈300–400, 520–590, 730–800.
+  { name: "ringMidLeft", points: [[0, 572, 587], [100, 562, 577], [200, 552, 567], [300, 544, 558], [400, 537, 551], [500, 532, 546], [600, 529, 543], [700, 526, 540], [830, 524, 538]] },
+  // Club-level ring, right of the scoreboard. Lit at x≈1410–1470, 1600–1690.
+  { name: "ringMidRight", reverse: true, points: [[1320, 515, 529], [1440, 512, 526], [1560, 512, 526], [1680, 517, 531], [1800, 523, 537], [1920, 529, 543]] },
+  // Lower-bowl ring, left of the scoreboard. Lit at x≈330–410, 540–600, 730–800.
+  { name: "ringLowerLeft", points: [[0, 617, 632], [100, 610, 625], [200, 603, 617], [300, 597, 610], [400, 592, 605], [500, 588, 601], [600, 584, 597], [700, 581, 593], [830, 578, 590]] },
+  // Lower-bowl ring, right of the scoreboard. Lit at x≈1400–1460, 1590–1640.
+  { name: "ringLowerRight", reverse: true, points: [[1320, 563, 576], [1440, 564, 577], [1560, 565, 578], [1680, 571, 584], [1800, 577, 591], [1920, 584, 598]] },
+] satisfies { name: string; reverse?: boolean; points: readonly (readonly [number, number, number])[] }[];
 
-/** Ribbon runs, in bowl order, with the direction their text scrolls. */
-export const RING_RUNS: { name: SurfaceName; reverse?: boolean }[] = [
-  { name: "ringUpperLeftA" },
-  { name: "ringUpperLeftB" },
-  { name: "ringUpperLeftC" },
-  { name: "ringUpperRightA", reverse: true },
-  { name: "ringUpperRightB", reverse: true },
-  { name: "ringMidLeftA" },
-  { name: "ringMidLeftB" },
-  { name: "ringMidLeftC" },
-  { name: "ringMidLeftD" },
-  { name: "ringMidRightA", reverse: true },
-  { name: "ringMidRightB", reverse: true },
-  { name: "ringLowerLeftA" },
-  { name: "ringLowerLeftB" },
-  { name: "ringLowerLeftC" },
-  { name: "ringLowerRightA", reverse: true },
-  { name: "ringLowerRightB", reverse: true },
-];
+/** Ribbon runs, in bowl order, with scroll direction and where each sits in its run. */
+export type RingRun = { name: string; reverse?: boolean; offset: number };
+
+const RING_SURFACES: Record<string, Quad> = {};
+export const RING_RUNS: RingRun[] = [];
+
+for (const run of RIBBON_RUNS) {
+  let offset = 0;
+  for (let i = 0; i < run.points.length - 1; i += 1) {
+    const [x0, t0, b0] = run.points[i];
+    const [x1, t1, b1] = run.points[i + 1];
+    const name = `${run.name}${i + 1}`;
+    const quad: Quad = [[x0, t0], [x1, t1], [x1, b1], [x0, b0]];
+    RING_SURFACES[name] = quad;
+    RING_RUNS.push({ name, reverse: run.reverse, offset });
+    // Content px, so a neighbouring segment picks the scroll up where this one left off.
+    offset += quadSize(quad).width;
+  }
+}
+
+export const SURFACES: Record<string, Quad> & typeof JUMBO_SURFACES = {
+  ...JUMBO_SURFACES,
+  ...RING_SURFACES,
+};
+
+export type SurfaceName = keyof typeof JUMBO_SURFACES | (string & {});
 
 /** Pixel size for projecting content onto a quad at ~1:1 with the photo (×density). */
 export function quadSize(quad: Quad, density = 2) {

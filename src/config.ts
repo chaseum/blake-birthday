@@ -20,6 +20,14 @@ export const birthday: BirthdayConfig = {
   gameTime: "7:00 PM",
   // Surface/camera coordinates in src/arena/geometry.ts are measured on this exact photo.
   arenaImage: `${base}arena/aac-interior.jpg`,
+  // Official NHL-hosted primary logos, saved locally so nothing depends on a CDN.
+  // https://assets.nhle.com/logos/nhl/svg/{DAL,COL}_dark.svg (dark-background variants,
+  // which carry the keyline these dark boards need) — artwork untouched,
+  // only each viewBox tightened to the mark so both crests size the same way.
+  teamLogos: {
+    stars: `${base}teams/dallas-stars.svg`,
+    avalanche: `${base}teams/colorado-avalanche.svg`,
+  },
   arenaCredit: {
     label: "American Airlines Center Interior 2026 · BullDawg2021",
     sourceUrl:
@@ -78,11 +86,11 @@ export const birthday: BirthdayConfig = {
   // Stat card for each highlight, paired by index (same length; `npm run check` enforces it).
   stats: [
     { label: "IRELAND RUN", value: "AWAY", detail: "Blake took his game overseas." },
-    { label: "REACTION TEST", value: "SCORE: 53", detail: "Beat Chase. No rematch granted." },
+    { label: "MUSEUM GAMES", value: "SCORE: 53", detail: "Beat Chase, and no rematches apparently." },
     { label: "WORLD CUP WATCH PARTY", value: "WINGS", detail: "Very overpriced drinks but free lineups (?)" },
-    { label: "IKEA AWAY DAY", value: "MATCHED", detail: "Coordinated fits at all times." },
+    { label: "IKEA AWAY DAY", value: "TWINS!", detail: "Matching fits at all times..." },
     { label: "FRAT PARTY", value: "OT", detail: "The DJ kept playing the same songs for some reason..." },
-    { label: "NEW GLASSES ERA", value: "20/20", detail: "A$AP's glasses but they look fire on you king!" },
+    { label: "NEW GLASSES!", value: "20/20", detail: "A$AP's glasses but they look fire on you king!" },
   ],
 
   // Final collage: strong Blake, an event, a candid, the two of them, and Fritz.

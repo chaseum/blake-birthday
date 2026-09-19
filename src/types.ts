@@ -47,6 +47,9 @@ export type BirthdayConfig = {
   gameDate: string;
   gameTime: string;
   arenaImage: string;
+  /** Official team marks (local copies of the NHL-hosted logos). Avalanche is
+   *  part of the reveal — never render it before the winning goal. */
+  teamLogos: { stars: string; avalanche: string };
   arenaCredit: {
     label: string;
     sourceUrl: string;

@@ -205,7 +205,17 @@
 }
 
 .score-strip__team--home {
-  color: var(--led-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #fff;
+}
+
+/* The crest is the branding; the strip stays black / green / silver. */
+.score-strip__team--home img {
+  height: 46px;
+  width: auto;
 }
 
 .score-strip__clock {
@@ -253,7 +263,7 @@
   font-size: 64px;
   letter-spacing: -0.04em;
   color: #fff;
-  text-shadow: 0 0 14px rgba(60, 255, 150, 0.8);
+  text-shadow: 0 0 6px rgba(190, 255, 220, 0.45);
 }
 
 /* ---------- Ice skaters ---------- */
@@ -398,7 +408,7 @@
 
 .ring-board {
   /* Only a faint halo; bigger glows read as fake strips across the physical gaps. */
-  box-shadow: 0 0 4px rgba(30, 220, 120, 0.25);
+  box-shadow: 0 0 3px rgba(30, 220, 120, 0.22);
 }
 
 .jumbotron-surface--goal .led,
@@ -430,19 +440,15 @@
   overflow: hidden;
 }
 
+/* Victory Green panel, darker at the edges like a real LED tile run. */
 .arena-ribbon--green {
-  background: linear-gradient(#003a22, #00542f 50%, #003a22);
-  color: #fff;
-}
-
-.arena-ribbon--white {
-  background: #020403;
-  color: var(--led-green);
+  background: linear-gradient(#00241a, #00402a 45%, #002a1d);
+  color: #e6fff1;
 }
 
 .arena-ribbon--goal {
-  background: var(--led-green);
-  color: #021;
+  background: linear-gradient(#0a7a45, #0f9c58 45%, #0a7a45);
+  color: #f2fff8;
 }
 
 .arena-ribbon__track {
@@ -463,13 +469,18 @@
 .arena-ribbon__track span {
   font-family: var(--display);
   font-weight: 800;
-  letter-spacing: 0.14em;
-  padding-right: 1.4em;
-  text-shadow: 0 0 6px currentColor;
+  letter-spacing: 0.1em;
+  padding-right: 1.2em;
 }
 
+/* Ring runs. One fixed size across every segment of every run: the scroll
+   offsets in RING_RUNS are content pixels, so a phrase crossing a segment
+   boundary only lines up if the glyph advance is identical on both sides.
+   Bloom is kept to a fraction of an em so it never reaches past the strip. */
 .arena-ribbon--ring .arena-ribbon__track span {
-  font-size: 24px;
+  font-size: 20px;
+  line-height: 1;
+  text-shadow: 0 0 0.16em rgba(190, 255, 220, 0.55);
 }
 
 .arena-ribbon--large .arena-ribbon__track {
@@ -479,6 +490,7 @@
 .arena-ribbon--large .arena-ribbon__track span {
   font-size: 80px;
   line-height: 1;
+  text-shadow: 0 0 10px rgba(190, 255, 220, 0.5);
 }
 
 /* ---------- Ice + camera FX ---------- */

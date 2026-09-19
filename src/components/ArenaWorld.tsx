@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { ARENA, PUCK_SPOT, RING_RUNS, SURFACES, frameShot, type Rect } from "../arena/geometry";
+import { ARENA, PUCK_SPOT, RING_RUNS, frameShot, type Rect } from "../arena/geometry";
 import { ArenaRibbon } from "./ArenaRibbon";
 import { ArenaSurface } from "./ArenaSurface";
 import { CatEasterEgg } from "./CatEasterEgg";
@@ -108,13 +108,13 @@ export function ArenaWorld({
         {showSkaters ? <IceSkaters /> : null}
         {onCatFind ? <CatEasterEgg onFind={onCatFind} /> : null}
 
-        {RING_RUNS.map(({ name, reverse }) => (
+        {RING_RUNS.map(({ name, reverse, offset }) => (
           <ArenaSurface key={name} name={name} className="led ring-board">
             <ArenaRibbon
               text={goalMode ? "GOAL · DALLAS STARS · " : ringText}
-              tone={goalMode ? "goal" : name.startsWith("ringMid") ? "white" : "green"}
+              tone={goalMode ? "goal" : "green"}
               reverse={reverse}
-              offset={SURFACES[name][0][0] * 2}
+              offset={offset}
             />
           </ArenaSurface>
         ))}

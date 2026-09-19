@@ -35,7 +35,10 @@ export function JumbotronSurface({
         <b>0</b>
         <span className="score-strip__clock">{goalMode ? "GOAL" : birthday.gameTime}</span>
         <b>{homeScore}</b>
-        <span className="score-strip__team score-strip__team--home">DAL ★</span>
+        <span className="score-strip__team score-strip__team--home">
+          <img src={birthday.teamLogos.stars} alt={birthday.homeTeam} />
+          DAL
+        </span>
       </ArenaSurface>
 
       {/* Light the front screen throws onto the truss and crowd. */}

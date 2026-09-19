@@ -1,6 +1,6 @@
 type ArenaRibbonProps = {
   text: string;
-  tone?: "green" | "white" | "goal";
+  tone?: "green" | "goal";
   size?: "ring" | "large";
   reverse?: boolean;
   /** Shift (content px) so neighbouring runs read as one continuous band. */

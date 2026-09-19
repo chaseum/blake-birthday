@@ -287,6 +287,8 @@ export function HockeyChallenge({ onWin }: Props) {
       ctx.fillStyle = "#0d1712";
       ctx.fillRect(-6, -6, w + 12, h + 12);
       ctx.drawImage(crowd[frame], 0, 0);
+      // Behind the rink layer, so the dasher board clips him at the waist.
+      art.drawMascot(ctx, layout, lampOn ? 1 : 0, real);
       ctx.drawImage(rink, 0, 0);
       art.drawGoalLamp(ctx, layout, lampOn, real);
       art.drawNet(ctx, net, ripple);

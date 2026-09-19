@@ -54,7 +54,7 @@ import { birthday } from "../src/config.ts";
   const media: string[] = [];
   const walk = (value: unknown): void => {
     if (typeof value === "string") {
-      if (/\.(jpe?g|png|webp|gif|avif|heic|dng|mp4|webm|mov|mp3|ogg|wav|m4a)$/i.test(value)) media.push(value);
+      if (/\.(jpe?g|png|webp|gif|avif|heic|dng|svg|mp4|webm|mov|mp3|ogg|wav|m4a)$/i.test(value)) media.push(value);
     } else if (value && typeof value === "object") Object.values(value).forEach(walk);
   };
   walk(birthday);

@@ -61,8 +61,11 @@ function Ticket({ seat, index }: { seat: string; index: number }) {
           <span>DAL</span>
         </div>
 
+        {/* Final matchup: both real crests, the first and only Avalanche branding. */}
         <div className="ticket__matchup">
+          <img src={birthday.teamLogos.avalanche} alt={birthday.opponent} />
           {birthday.opponent.toUpperCase()} <b>AT</b> {birthday.homeTeam.toUpperCase()}
+          <img src={birthday.teamLogos.stars} alt={birthday.homeTeam} />
         </div>
       </div>
 

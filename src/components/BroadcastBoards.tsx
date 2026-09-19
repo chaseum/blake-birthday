@@ -41,6 +41,22 @@ function Photo({ memory, className = "" }: { memory: MemoryPhoto; className?: st
   );
 }
 
+/**
+ * Official team mark. The Avalanche crest is part of the ticket reveal, so it
+ * only ever renders from RevealBoard down — never in the birthday sequence.
+ */
+function TeamLogo({ team, size = 64 }: { team: "stars" | "avalanche"; size?: number }) {
+  return (
+    <img
+      className="team-logo"
+      src={birthday.teamLogos[team]}
+      alt={team === "stars" ? birthday.homeTeam : birthday.opponent}
+      style={{ height: size }}
+      onError={warnMissing}
+    />
+  );
+}
+
 function StarMark({ size = 40 }: { size?: number }) {
   return (
     <svg className="star-mark" width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
@@ -74,7 +90,7 @@ export function PregameBoard() {
         <strong>BIRTHDAY NIGHT</strong>
         <em>{birthday.birthdayName.toUpperCase()}</em>
       </div>
-      <StarMark size={64} />
+      <TeamLogo team="stars" size={78} />
     </div>
   );
 }
@@ -136,7 +152,7 @@ export function LineupBoard({ activeIndex }: { activeIndex: number }) {
       </div>
 
       <div className="lineup-bug">
-        <StarMark size={26} />
+        <TeamLogo team="stars" size={34} />
         STARTING LINEUP
         <b>
           {activeIndex + 1}/{birthday.lineup.length}
@@ -218,6 +234,7 @@ export function GoalBoard() {
         ))}
       </strong>
       <em>{birthday.birthdayName.toUpperCase()} SCORES!</em>
+      <TeamLogo team="stars" size={116} />
     </div>
   );
 }
@@ -229,10 +246,17 @@ export function RevealBoard() {
         {birthday.gameDay} · {birthday.gameDate} · {birthday.gameTime}
       </span>
       <strong>WE'RE GOING.</strong>
+      {/* The opponent is revealed here for the first time, crest and all. */}
       <div className="reveal-matchup">
-        <span>{birthday.opponent.toUpperCase()}</span>
+        <div className="reveal-matchup__team">
+          <TeamLogo team="avalanche" size={130} />
+          <span>{birthday.opponent.toUpperCase()}</span>
+        </div>
         <b>@</b>
-        <span>{birthday.homeTeam.toUpperCase()}</span>
+        <div className="reveal-matchup__team">
+          <TeamLogo team="stars" size={130} />
+          <span>{birthday.homeTeam.toUpperCase()}</span>
+        </div>
       </div>
     </div>
   );

@@ -25,6 +25,8 @@ export const PAL: Record<string, string> = {
   j: "#eaf5f7",
   C: "#8fc3e6", // crease
   Y: "#ffd84a",
+  V: "#7ed957", // Victor's fur
+  v: "#5cb63a", // Victor's fur, shaded
 };
 
 const rect = (ctx: Ctx, x: number, y: number, w: number, h: number, color: string) => {
@@ -202,6 +204,48 @@ export function drawNet(ctx: Ctx, net: Net, ripple: { x: number; y: number; t: n
   rect(ctx, left - 3, top - 3, right - left + 6, 1, "r");
   rect(ctx, left - 3, top - 3, 1, line - top + 3, "r");
   rect(ctx, left - 4, top - 4, right - left + 8, 1, "K");
+}
+
+/**
+ * Victor E. Green leaning over the dasher in the corner: lime fur, wild tuft,
+ * Stars jersey with the star on the chest. Drawn in the same 1px sprite grammar
+ * as the players, so he belongs to the scene instead of sitting on top of it.
+ * `cheer` 0..1 raises his arms (he loses it when the goal lamp comes on).
+ */
+export function drawMascot(ctx: Ctx, layout: Layout, cheer: number, t: number) {
+  const x = Math.round(layout.cx - 104);
+  // Waist-deep behind the dasher: the rink layer is drawn over him.
+  const y = layout.boardsTop + 6;
+  const bob = cheer > 0.5 && Math.floor(t * 8) % 2 === 0 ? -1 : 0;
+  const o = y + bob;
+
+  // Wild three-tuft crest.
+  rect(ctx, x - 3, o - 25, 2, 3, "v");
+  rect(ctx, x, o - 27, 2, 5, "V");
+  rect(ctx, x + 3, o - 25, 2, 3, "v");
+
+  // Head, with the lower half in shadow so the muzzle reads.
+  drawParts(ctx, [[x - 4, o - 23, 10, 9, "V"]], 0, 0);
+  rect(ctx, x - 4, o - 18, 10, 4, "v");
+  rect(ctx, x - 3, o - 21, 3, 3, "W");
+  rect(ctx, x + 2, o - 21, 3, 3, "W");
+  rect(ctx, x - 2, o - 20, 1, 2, "K");
+  rect(ctx, x + 3, o - 20, 1, 2, "K");
+  rect(ctx, x - 2, o - 17, 6, 1, "K"); // grin
+  rect(ctx, x - 1, o - 16, 4, 1, "W");
+
+  // Stars sweater: green body, white yoke and hem, star on the chest.
+  drawParts(ctx, [[x - 5, o - 14, 12, 10, "G"]], 0, 0);
+  rect(ctx, x - 5, o - 14, 12, 2, "W");
+  rect(ctx, x - 5, o - 6, 12, 1, "W");
+  pixelStar(ctx, x - 2, o - 12, "W");
+
+  // Arms rest on the dasher, and go straight up when the lamp does.
+  const lift = Math.round(cheer * 8);
+  drawParts(ctx, [
+    [x - 7, o - 13 - lift, 2, 8, "V"],
+    [x + 8, o - 13 - lift, 2, 8, "V"],
+  ], 0, 0);
 }
 
 export function drawGoalLamp(ctx: Ctx, layout: Layout, on: boolean, t: number) {

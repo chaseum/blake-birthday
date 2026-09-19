@@ -192,12 +192,20 @@
   text-align: center;
   font-family: var(--display);
   font-weight: 800;
-  font-size: 4.2cqw;
-  letter-spacing: 0.06em;
+  font-size: 4cqw;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .ticket__matchup b {
   color: #9ee6bd;
+}
+
+.ticket__matchup img {
+  height: 5.6cqw;
+  width: auto;
+  vertical-align: -1.4cqw;
+  margin: 0 1.2cqw;
 }
 
 .ticket__stub {
