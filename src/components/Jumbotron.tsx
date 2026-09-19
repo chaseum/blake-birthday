@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { birthday } from "../config";
 import { ArenaRibbon } from "./ArenaRibbon";
 import { ArenaSurface } from "./ArenaSurface";
+import { StarsLogo } from "./StarsBrand";
 
 type JumbotronSurfaceProps = {
   children: ReactNode;
@@ -26,7 +27,6 @@ export function JumbotronSurface({
 }: JumbotronSurfaceProps) {
   const tone = goalMode ? "goal" : "green";
   const ticker = goalMode ? "GOAL · GOAL · GOAL · " : ribbonText;
-  const name = birthday.birthdayName.toUpperCase();
 
   return (
     <div className={`jumbotron-surface ${goalMode ? "jumbotron-surface--goal" : ""}`}>
@@ -35,7 +35,10 @@ export function JumbotronSurface({
         <b>0</b>
         <span className="score-strip__clock">{goalMode ? "GOAL" : birthday.gameTime}</span>
         <b>{homeScore}</b>
-        <span className="score-strip__team score-strip__team--home">DAL ★</span>
+        <span className="score-strip__team score-strip__team--home">
+          <StarsLogo className="score-strip__logo" decorative />
+          <span>DAL</span>
+        </span>
       </ArenaSurface>
 
       {/* Light the front screen throws onto the truss and crowd. */}
@@ -48,13 +51,13 @@ export function JumbotronSurface({
 
       {/* Side faces: narrow and heavily foreshortened, so simple vertical graphics only. */}
       <ArenaSurface name="leftFace" width={90} height={960} className="led side-face">
-        <span>{goalMode ? "GOAL" : name}</span>
+        <span>{goalMode ? "GOAL" : "DALLAS STARS"}</span>
       </ArenaSurface>
       <ArenaSurface name="leftPillar" width={64} height={960} className="led pillar">
-        <span>{goalMode ? "★ GOAL ★" : "★ HAPPY ★"}</span>
+        <span>{goalMode ? "GOAL" : "VICTORY GREEN"}</span>
       </ArenaSurface>
       <ArenaSurface name="rightPillar" width={64} height={960} className="led pillar">
-        <span>{goalMode ? "★ GOAL ★" : "BIRTHDAY ★"}</span>
+        <span>{goalMode ? "GOAL" : `BLAKE ${birthday.playerNumber}`}</span>
       </ArenaSurface>
 
       <ArenaSurface name="tickerFront" width={960} height={118} className="led">
