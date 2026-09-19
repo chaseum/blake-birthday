@@ -205,7 +205,18 @@
 }
 
 .score-strip__team--home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   color: var(--led-green);
+}
+
+.score-strip__logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(0, 250, 0, 0.38));
 }
 
 .score-strip__clock {
@@ -226,11 +237,21 @@
 }
 
 .pillar {
-  background: linear-gradient(90deg, #1c2320, #2c3531 50%, #1c2320);
+  background: linear-gradient(90deg, #111614, #303734 50%, #111614);
 }
 
 .side-face {
-  background: linear-gradient(180deg, #03140c, #00502f 45%, #03140c);
+  background: linear-gradient(180deg, #020806, var(--stars-green) 46%, #020806);
+}
+
+.pillar::before,
+.side-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.24;
+  background: repeating-linear-gradient(0deg, transparent 0 42px, rgba(167, 169, 172, 0.45) 42px 44px);
 }
 
 .pillar span,
@@ -245,13 +266,18 @@
 }
 
 .pillar span {
+  position: relative;
+  z-index: 2;
   font-size: 40px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
 }
 
 .side-face span {
-  font-size: 64px;
-  letter-spacing: -0.04em;
+  position: relative;
+  z-index: 2;
+  font-size: 58px;
+  letter-spacing: 0;
   color: #fff;
   text-shadow: 0 0 14px rgba(60, 255, 150, 0.8);
 }
